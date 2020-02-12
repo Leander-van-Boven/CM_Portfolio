@@ -19,16 +19,7 @@ library(spotifyr)
 load("spotify_env_vars.RData")
 SetEnvVars()
 
-noisecontrollers <- get_artist_audio_features('noisecontrollers') # 199 songs
-headhunterz <- get_artist_audio_features('headhunterz')           # 146 songs
-brennan_heart <- get_artist_audio_features('brennan heart')       # 100 songs
-showtek <- get_artist_audio_features('showtek')                   # 88 songs
-da_tweekaz <- get_artist_audio_features('da tweekaz')             # 62 songs
-sub_zero_project <- get_artist_audio_features('sub zero project') # 56 songs
-dblock_stefan <- get_artist_audio_features('d-block & s-te-fan')  # 47 songs
-
-all_songs <- rbind(noisecontrollers, headhunterz, brennan_heart, showtek, da_tweekaz, sub_zero_project, dblock_stefan)
-all_songs$num <- 1:nrow(all_songs)
+load("data/all_songs.RData")
 ```
 
 # The idea
