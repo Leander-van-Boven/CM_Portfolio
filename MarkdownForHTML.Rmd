@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = FALSE)
 #knitr::opts_chunk$set(fig.width = 10, fig.height = 5)
 
 library(ggplot2)
-library(gridExtra)
+library(tidyverse)
+library(reshape2)
 library(spotifyr)
 load("spotify_env_vars.RData")
 SetEnvVars()
@@ -84,51 +85,81 @@ The track features include many features including the following numeric feature
 
 This is a lot of data in which some features may be very similar for all songs. It is useless to include this data in the trainingsdata for the classifier since it wouldn't provide good information to distinguish two songs from each other, let alone different artists.
 
-To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. Previous week I plotted each feature in a seperate plot (they can be found [here](https://github.com/Saltpile123/CM_Assignment_Week_6/blob/Week_6/README.md)). From these plots I immediately could observe that the _Mode_ features was not useful. Some other features didn't seem to show any clear patterns on their own too. That is why I am going to plot some features against each other with the colors of the data-points corresponding to the artist. If we are able to destinguish clusters we may be able to train a classifier on only these features.
-
-
-```{r}
-par(mfrow=c(1,2))
-
-plotVars <- function(one, two){
-  one_lab <- colnames(all_songs)[one]
-  two_lab <- colnames(all_songs)[two]
-  pl <- ggplot(all_songs, aes(x=all_songs[,one], y=all_songs[,two], col=artist_name)) +
-    geom_point() +
-    labs(color='Artis', title=paste(one_lab, 'plotted relative to', two_lab)) +
-    xlab(one_lab) +
-    ylab(two_lab)
-  print(pl)
-}
-for (i in 1:11){
-  for (j in 1:11){
-    plotVars(i,j)
-  }
-}
-```
-
-As you can see the _Mode_ feature only has two values and no artist seem to prefer one or another, thus we can discard this feature from our dataset.
-Furthermore the _Danceability_ / _Speechiness_ / _Liveness_ and _Valence_ plots show no clear patterns or differences between the artists, thus are probably also not useful information to include in the data.
-The _Key_ histogram does show some big differences in key usage, however this is key usage between songs and not between artists in particular. All artists seem to prefer a key of ~1 or ~8.
-
-But in for example the _Loudness_ plot we can see some clear patterns difference between the artists where the songs of another artist are in the dataset. The _Energy_ and _Tempo_ plots look promising too.
-
-***
-
-> All items below are a planning and description of things I'm going to do in the upcoming weeks, these are subject to change as result of feedback and/or new things learned during the course.
+To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. Previous week I plotted each feature in a seperate plot (they can be found [here](https://github.com/Saltpile123/CM_Portfolio/blob/master/plots/All_features_scatterplots.md)). From these plots I immediately could observe that the _Mode_ features was not useful. Some other features didn't seem to show any clear patterns on their own too. That is why I have plotted each feature relative to the other features. If one of these plots already show clusters we probably only need to use these two features to train a classifier with.
+However I have put these plots in a separate [document](https://github.com/Saltpile123/CM_Portfolio/blob/master/plots/All_features_relative.md) because of the amount (121) and because no plot seems to show any clear clusters.
+So although the scatterplots did seem to show some nice patterns, these patterns seem to be very similar among the artists.
+This thus means we need to perform Principal Component Analysis as I described previous week.
+I will elaborate more on this in the Data Preparation section below. If the PCA provides us with good clusters we know that we can quite easily build a classifier, however if the PCA doesn't provide us with any noticable clusters it may be possible that the data can be clustered, but in higher dimensions. This, however, is quite hard to visualize, thus then I will probably just feed the data to the classifier and hopefully it will be able to draw relations between the features and the artist.
 
 ### Data Preparation
 
 #### Dimensionality reduction
 Before we can feed the data to the classifier we first need to prepare the data. One part of data preparation is data reduction. This means that we reduce the initial dataset to be only data we are going to use for the classifier.
-First of all we need to look whether there are any outliers in our dataset, since they will upset the classifier thus lowering its performance. However removing data that is just outside the cluster of songs of a certain artist will lower the diversity and can cause the classifier to overfit more easily.
-Since we are going to use the track features we can all discard all data other than these featuer. However as discussed earlier the _Mode_ feature does not include any useful information thus we can discard that data as well.
+Since we are going to use the track features we can all discard all data other than these features. I combined this data only into a new data frame and saved that as my new corpus. 
+Previously I mentioned removing the _Mode_ feature from our data as well, however since we are now going to perform PCA I will keep this feature for now.
 Of course we still need to include the _Artist_ in our reduced dataset since we need to use that data as classes for the model.
-As mentioned before most of the other features didn't show much patterns too, however since we can't rule out that they might be useful we still need to include this data is some way. This, however, may mean that we get alot of information-sparse data. 
 
-This is why I'm going to apply a principal component analysis on those possibly information sparse data and use that data to create another model.
-Principal component analysis means that we reduce the data to a new dataset where each column is an information rich column that captures as much possible variation from the initial data.
-This data may be even better to use than the features on their own since the PCA data will be more dense in information.
+##### Principal Component Analysis
+As mentioned in the Data Understanding we need to apply Principal Component Analysis on the data since the features on their own or relative to one other feature didn't show any good clusters. Principal component analysis means that we reduce the data to a new dataset where each column is an information rich column that captures as much possible variation from the initial data.
+This data may be even better to use than the features on their own since the PCA data will be more dense in information, and will contain only the relevant parts of the features.
+First of all I made a PCA of the data, I have plotted the first two against each other:
+
+```{r, fig.width=10, fig.align='center'}
+all_songs_pca <- prcomp(all_songs[,1:11])
+ggplot(all_songs, aes(all_songs_pca$x[,1], all_songs_pca$x[,2], col=all_songs$artist_name)) + 
+  geom_point() +
+  labs(color='Artist', title='PC2 plotted against PC1') +
+  xlab('PC1') +
+  ylab('PC2')
+```
+
+We still see clear separation between the artists, if any we see that they are all very close in terms of PC1 and PC2.
+However since the PCA consists in our case of 11 principal components, we might not see all differences between the artists. Thus we need a way to see whether all principal components can be used to cluster the songs into artists.
+To compare the stadard features with the principal components I have applied k-means clustering on both the features data and principal components data with 7 clusters (we have 7 artists). 
+If the data can be effectively clustered then we would see 7 separate lines. Each line is a continuous set of points, and each line will only have one color, because all points on the same line mean that they are all in the same cluster. If each line then only consists of only points of the same color this would mean that all songs in this cluster are from the same artist.
+I got the following plots:
+
+```{r, fig.width=10, fig.align='center'}
+as_clusters <- kmeans(all_songs[,1:11], 7)
+as_pca_clusters <- kmeans(all_songs_pca$x, 7)
+
+all_clusters <- data.frame(all_songs$artist_name)
+all_clusters$f_cluster <- as_clusters$cluster
+all_clusters$pc_cluster <- as_pca_clusters$cluster
+all_clusters$num <- c(1:nrow(all_clusters))
+colnames(all_clusters) <- c('Artist', 'f_cluster', 'pc_cluster', 'num')
+
+melted_all_clusters <- melt(all_clusters, c('Artist', 'num'))
+ggplot(melted_all_clusters, aes(x=num, y=value, col=Artist)) +
+  geom_point() +
+  facet_wrap(~ variable, nrow=1,labeller=labeller(variable=c('f_cluster'='Features','pc_cluster'='Principal Components'))) +
+  labs(color='Artist', title='K-means Clustering Results') +
+  xlab('Track Number') +
+  ylab('Cluster')
+```
+
+Sadly we see that almost all artists have songs in each cluster, regardless of using the standard features or principal components as data for the classifier.
+Seeing this results got me worried whether there actually is a difference between the artists.
+However I am going to take a look into that more next week.
+I however have not lost hope yet that I can build a classifier, since this was only to see if any clusters showed up so far. If this would've been the case I would've been all set to create a simple classifier by using the k-means clustering and just find the right cluster for a new song.
+Also often data which doesn't seem to be clusterable with k-means clustering can be clustered by some other clustering algorithm.
+This combined with that most multiclass multilayer perceptrons merely 'detect' patterns in data than just clustering it is enough motivation and hope for me to keep on trying to build this classifier.
+
+```{r, include=FALSE}
+all_artists <- all_songs %>%
+  group_by(artist_name) %>%
+  summarize(mean(danceability), mean(energy), mean(key), mean(loudness), mean(speechiness), mean(acousticness), mean(instrumentalness), mean(liveness), mean(valence), mean(tempo))
+
+colnames(all_artists) <- c('Artist', 'Danceability', 'Energy', 'Key', 'Loudness', 'Speechiness', 'Acousticness', 'Instrumentalness', 'Liveness', 'Valence', 'Tempo')
+
+all_artists_pca <- prcomp(all_artists[,2:11])
+ggplot(all_artists, aes(all_artists_pca$x[,1], all_artists_pca$x[,2], col=Artist)) + geom_point()
+
+```
+
+***
+
+> All items below are a planning and description of things I'm going to do in the upcoming weeks, these are subject to change as result of feedback and/or new things learned during the course.
 
 #### Subsetting the data for the classifier
 Since we are going to train a classifier we also need to seperate the data into two subsets:
