@@ -84,80 +84,27 @@ The track features include many features including the following numeric feature
 
 This is a lot of data in which some features may be very similar for all songs. It is useless to include this data in the trainingsdata for the classifier since it wouldn't provide good information to distinguish two songs from each other, let alone different artists.
 
-To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset and plotted each feature:
+To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. Previous week I plotted each feature in a seperate plot (they can be found [here](https://github.com/Saltpile123/CM_Assignment_Week_6/blob/Week_6/README.md)). From these plots I immediately could observe that the _Mode_ features was not useful. Some other features didn't seem to show any clear patterns on their own too. That is why I am going to plot some features against each other with the colors of the data-points corresponding to the artist. If we are able to destinguish clusters we may be able to train a classifier on only these features.
+
 
 ```{r}
 par(mfrow=c(1,2))
-dance <- ggplot(all_songs, aes(x=num, y=danceability, col=artist_name)) + geom_point() +
-  labs(color='Artist', title='Scatterplot of Danceability') +
-  xlab('Track Num') +
-  ylab('Danceability')
 
-energy <- ggplot(all_songs, aes(x=num, y=energy, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Energy') +
-  xlab('Track Num') +
-  ylab('Energy')
-
-key <- ggplot(all_songs, aes(x=key, col=artist_name)) + geom_histogram(bins=12) + 
-  labs(color='Artist', title='Histograms of Key') +
-  xlab('Key') +
-  ylab('Count') +
-  facet_wrap( ~ artist_name, nrow=1) + 
-  theme(strip.text=element_blank())
-
-loud <- ggplot(all_songs, aes(x=num, y=loudness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Loudness') +
-  xlab('Track Num') +
-  ylab('Loudness')
-
-mode <- ggplot(all_songs, aes(x=mode, col=artist_name)) + geom_histogram(bins=2) + 
-  labs(color='Artist', title='Histogram of Mode') +
-  xlab('Mode') +
-  ylab('Count') +
-  facet_wrap( ~ artist_name, nrow=1) +
-  theme(strip.text=element_blank())
-
-speech <- ggplot(all_songs, aes(x=num, y=speechiness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Speechiness') +
-  xlab('Track Num') +
-  ylab('Speechiness')
-
-acoust <- ggplot(all_songs, aes(x=num, y=acousticness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Acousticness') +
-  xlab('Track Num') +
-  ylab('Acousticness')
-
-inst <- ggplot(all_songs, aes(x=num, y=instrumentalness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Instrumentalness') +
-  xlab('Track Num') +
-  ylab('Instrumentalness')
-
-live <- ggplot(all_songs, aes(x=num, y=liveness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Liveness') +
-  xlab('Track Num') +
-  ylab('Liveness')
-
-valence <- ggplot(all_songs, aes(x=num, y=valence, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Valence') +
-  xlab('Track Num') +
-  ylab('Valence')
-
-tempo <- ggplot(all_songs, aes(x=num, y=tempo, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Tempo') +
-  xlab('Track Num') +
-  ylab('Tempo')
-
-dance
-energy
-key
-loud
-mode
-speech
-acoust
-inst
-live
-valence
-tempo
+plotVars <- function(one, two){
+  one_lab <- colnames(all_songs)[one]
+  two_lab <- colnames(all_songs)[two]
+  pl <- ggplot(all_songs, aes(x=all_songs[,one], y=all_songs[,two], col=artist_name)) +
+    geom_point() +
+    labs(color='Artis', title=paste(one_lab, 'plotted relative to', two_lab)) +
+    xlab(one_lab) +
+    ylab(two_lab)
+  print(pl)
+}
+for (i in 1:11){
+  for (j in 1:11){
+    plotVars(i,j)
+  }
+}
 ```
 
 As you can see the _Mode_ feature only has two values and no artist seem to prefer one or another, thus we can discard this feature from our dataset.
@@ -172,15 +119,18 @@ But in for example the _Loudness_ plot we can see some clear patterns difference
 
 ### Data Preparation
 
-Beofre we can feed the data to the classifier we first need to prepare the data. One part of data preparation is data reduction. This means that we reduce the initial dataset to be only data we are going to use for the classifier. 
+#### Dimensionality reduction
+Before we can feed the data to the classifier we first need to prepare the data. One part of data preparation is data reduction. This means that we reduce the initial dataset to be only data we are going to use for the classifier.
+First of all we need to look whether there are any outliers in our dataset, since they will upset the classifier thus lowering its performance. However removing data that is just outside the cluster of songs of a certain artist will lower the diversity and can cause the classifier to overfit more easily.
 Since we are going to use the track features we can all discard all data other than these featuer. However as discussed earlier the _Mode_ feature does not include any useful information thus we can discard that data as well.
-Of course we still need to include the _Artist_ in our reduced dataset since we need to use that data for as classes for the model.
-As mentioned before most of the other features didn't show much patterns too, however since we can't rule out that they might be useful we still need to include it. This, however, may mean that we get alot of information sparse data. 
+Of course we still need to include the _Artist_ in our reduced dataset since we need to use that data as classes for the model.
+As mentioned before most of the other features didn't show much patterns too, however since we can't rule out that they might be useful we still need to include this data is some way. This, however, may mean that we get alot of information-sparse data. 
 
 This is why I'm going to apply a principal component analysis on those possibly information sparse data and use that data to create another model.
 Principal component analysis means that we reduce the data to a new dataset where each column is an information rich column that captures as much possible variation from the initial data.
 This data may be even better to use than the features on their own since the PCA data will be more dense in information.
 
+#### Subsetting the data for the classifier
 Since we are going to train a classifier we also need to seperate the data into two subsets:
 
 * A trainingset, containing about 80% of the data. This data will be used to train the classifier.

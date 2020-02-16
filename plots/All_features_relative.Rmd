@@ -1,0 +1,35 @@
+---
+title: "All Features Plotted Relative"
+author: "Leander van Boven - 12997080"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+#knitr::opts_chunk$set(fig.width = 10, fig.height = 5)
+
+library(ggplot2)
+library(gridExtra)
+library(spotifyr)
+load("spotify_env_vars.RData")
+SetEnvVars()
+load("data/all_songs.RData")
+```
+
+```{r}
+plotVars <- function(one, two){
+  one_lab <- colnames(all_songs)[one]
+  two_lab <- colnames(all_songs)[two]
+  pl <- ggplot(all_songs, aes(x=all_songs[,one], y=all_songs[,two], col=artist_name)) +
+    geom_point() +
+    labs(color='Artis', title=paste(one_lab, 'plotted relative to', two_lab)) +
+    xlab(one_lab) +
+    ylab(two_lab)
+  print(pl)
+}
+for (i in 1:11){
+  for (j in 1:11){
+    plotVars(i,j)
+  }
+}
+```

@@ -1,0 +1,90 @@
+---
+title: "All Features Scatterplots"
+author: "Leander van Boven - 12997080"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+#knitr::opts_chunk$set(fig.width = 10, fig.height = 5)
+
+library(ggplot2)
+library(gridExtra)
+library(spotifyr)
+load("spotify_env_vars.RData")
+SetEnvVars()
+load("data/all_songs.RData")
+```
+
+```{r}
+dance <- ggplot(all_songs, aes(x=num, y=danceability, col=artist_name)) + geom_point() +
+  labs(color='Artist', title='Scatterplot of Danceability') +
+  xlab('Track Num') +
+  ylab('Danceability')
+
+energy <- ggplot(all_songs, aes(x=num, y=energy, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Energy') +
+  xlab('Track Num') +
+  ylab('Energy')
+
+key <- ggplot(all_songs, aes(x=key, col=artist_name)) + geom_histogram(bins=12) + 
+  labs(color='Artist', title='Histograms of Key') +
+  xlab('Key') +
+  ylab('Count') +
+  facet_wrap( ~ artist_name, nrow=1) + 
+  theme(strip.text=element_blank())
+
+loud <- ggplot(all_songs, aes(x=num, y=loudness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Loudness') +
+  xlab('Track Num') +
+  ylab('Loudness')
+
+mode <- ggplot(all_songs, aes(x=mode, col=artist_name)) + geom_histogram(bins=2) + 
+  labs(color='Artist', title='Histogram of Mode') +
+  xlab('Mode') +
+  ylab('Count') +
+  facet_wrap( ~ artist_name, nrow=1) +
+  theme(strip.text=element_blank())
+
+speech <- ggplot(all_songs, aes(x=num, y=speechiness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Speechiness') +
+  xlab('Track Num') +
+  ylab('Speechiness')
+
+acoust <- ggplot(all_songs, aes(x=num, y=acousticness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Acousticness') +
+  xlab('Track Num') +
+  ylab('Acousticness')
+
+inst <- ggplot(all_songs, aes(x=num, y=instrumentalness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Instrumentalness') +
+  xlab('Track Num') +
+  ylab('Instrumentalness')
+
+live <- ggplot(all_songs, aes(x=num, y=liveness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Liveness') +
+  xlab('Track Num') +
+  ylab('Liveness')
+
+valence <- ggplot(all_songs, aes(x=num, y=valence, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Valence') +
+  xlab('Track Num') +
+  ylab('Valence')
+
+tempo <- ggplot(all_songs, aes(x=num, y=tempo, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Tempo') +
+  xlab('Track Num') +
+  ylab('Tempo')
+
+dance
+energy
+key
+loud
+mode
+speech
+acoust
+inst
+live
+valence
+tempo
+```
