@@ -1,12 +1,7 @@
 ---
 title: "Computational Musicology Portfolio Plan"
 author: "Leander van Boven - 12997080"
-output: html_document
-knit: (function(input_file, encoding) {
-  out_dir <- 'docs';
-  rmarkdown::render(input_file,
- encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +19,6 @@ load("data/all_songs.RData")
 ```
 
 # The idea
-***
 
 For my project I'm going to do research in the genre of hardstyle music.
 A lot of people would say that the music within this genre is all alike. However there is a common assumption that each artist distinguishes him- (or her)self with his (or her) unique style and sound. This are most noticable in the tones used in the so called _drop_ and as bass-kick.
@@ -33,7 +27,6 @@ I'm going to research whether this assumption can be proved with a (computer)mod
 However if such model is not possible, I'm going to research why this is the case, or what is necessary to create such model.
 
 # The data
-***
 
 To do this research we obviously need some data to work with.
 For this I'm going to use the songs from the top 5 hardstyle artists together with the songs of my 2 most favorite artists.
@@ -53,7 +46,6 @@ Together this gives us a corpus of 698 songs where each artist has about 50 song
 This should be enough data to build a decent classification model.
 
 # The planning
-***
 ### Data understanding
 
 Before trying to build a classifier we first need to do some exploration on and understanding of the data.
