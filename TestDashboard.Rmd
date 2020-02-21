@@ -2,7 +2,7 @@
 title: "Computational Musicology Portfolio Plan"
 author: "Leander van Boven - 12997080"
 #break: true
-runtime: shiny
+#runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     theme: united
