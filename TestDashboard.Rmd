@@ -96,10 +96,12 @@ I took these songs since I found both songs from _D-Block & S-te-Fan_ and the so
 Previous week I made two _Dynamic Time Warp_ plots to see whether I could find any similarities or differences using that. 
 This week to see how much both songs from _D-Block & S-te-fan_ compare to each other and how the comparison song from _D-Block & S-te-fan_ differs from the song from _Da Tweekaz_ I made cepstrograms and self-similarity matrices for all songs and compare these in the next two stories.
 
-### __Cepstrograms of the songs__
+### __Cepstrograms of the songs__ {data-commentary-width=600}
 
+```{r, include=FALSE}
+# We can use `compmus_gather_timbre` much like `compmus_gather_chroma` last week to yield a cepstrogram. Try different levels of structure -- Spotify's estimates of beats, bars, or sections -- to see which level is the most meaningful.
+```
 ```{r}
-# We can use `compmus_gather_timbre` much like `compmus_gather_chroma` last week to yield a cepstrogram. Try different levels of # structure -- Spotify's estimates of beats, bars, or sections -- to see which level is the most meaningful.
 lake_of_fire_align %>% 
     compmus_gather_timbre %>% 
     ggplot(
@@ -108,6 +110,7 @@ lake_of_fire_align %>%
             width = duration, 
             y = basis, 
             fill = value)) + 
+    ggtitle('Cepstrogram Lake of Fire') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
     scale_fill_viridis_c(option = 'E') +
@@ -120,6 +123,7 @@ fallen_souls_align %>%
             width = duration, 
             y = basis, 
             fill = value)) + 
+    ggtitle('Cepstrogram Fallen Souls') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
     scale_fill_viridis_c(option = 'E') +
@@ -132,6 +136,7 @@ knockout_align %>%
             width = duration, 
             y = basis, 
             fill = value)) + 
+    ggtitle('Cepstrogram Knockout') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
     scale_fill_viridis_c(option = 'E') +
@@ -140,15 +145,21 @@ knockout_align %>%
 
 ***
 
+Although the cepstrograms look very nice, it does not give a direct clue that _Lake of Fire_ and _Fallen Souls_ are from the same artist.
+The only thing that can be noticed is that both songs are less loud than _Knockout_.
+Sadly we don't see any patterns that are both in _Lake of Fire_ and _Fallen Souls_ and not in _Knockout_.
+There is however one interesting thing about both the cepstrogram and self-similarity matrices of the three songs, but I will explain that in the Self-Similarity Matrix section.
 
-### __Self-Similarity Matrix of the songs__
+### __Self-Similarity Matrix of the songs__ {data-commentary-width=600}
 
-- `compmus_long_distance` to compare to series of audio features against each other using common distance metrics, including:
-    - `manhattan`
-    - `aitchison`
-    - `euclidean`
-    - `cosine`
-    - `angular
+```{r, inlude=FALSE}
+#- `compmus_long_distance` to compare to series of audio features against each other using common distance metrics, including:
+#    - `manhattan`
+#    - `aitchison`
+#    - `euclidean`
+#    - `cosine`
+#    - `angular
+```
 
 ```{r}
 lake_of_fire_align %>% 
@@ -160,6 +171,7 @@ lake_of_fire_align %>%
             y = ystart + yduration / 2,
             height = yduration,
             fill = d)) + 
+    ggtitle('Self Similarity Lake of Fire') +
     geom_tile() +
     coord_fixed() +
     scale_fill_viridis_c(option = 'E', guide = 'none') +
@@ -174,6 +186,7 @@ fallen_souls_align %>%
             y = ystart + yduration / 2,
             height = yduration,
             fill = d)) + 
+    ggtitle('Self Similarity Fallen Souls') +
     geom_tile() +
     coord_fixed() +
     scale_fill_viridis_c(option = 'E', guide = 'none') +
@@ -188,6 +201,7 @@ knockout_align %>%
             y = ystart + yduration / 2,
             height = yduration,
             fill = d)) + 
+    ggtitle('Self Similarity Knockout') +
     geom_tile() +
     coord_fixed() +
     scale_fill_viridis_c(option = 'E', guide = 'none') +
@@ -197,7 +211,13 @@ knockout_align %>%
 
 ***
 
+Looking at the Self-Similarity matrices we do see very different plots. This, however, is again not what I wanted to see, since I would've hoped for shared features between the first two matrices. This was ofcourse to be expected since both the cepstrograms and similarity matrices are made with the same data/features of the three songs.
 
+Since the similarity matrix of _Fallen Souls_ looked so interesting because of it having only one yellow horizontal (and thus vertical) line.
+When listening to all three songs if found out that the yellow parts in both the cepstrograms and similarity matrices of _Lake of Fire_ and _Knockout_ corresponded to a 'drop' or at least and increase in overall music intensity and especially an increase in intensity of the bass frequencies.
+The interesting bit is that the yellow part in _Fallen Souls_ actually corresponds with the sound of a piano! This piano is supported with a high sound in the background at about the same height resulting in an high magnitude at c02. It is also worth noticing that after this bit there is an increase in magnitude at the c05 level. This is because after both high magnitude bits at c02 there is a part where a female voice sings:
+"In a place afar from home, there is a haunted house along an empty road, and if you listen close you can hear the whispers of the fallen souls" before going to a lower singing height.
+The dark blue squares correspond to the sound of only a synth sounding the main melody of the song, explaining the relative small magnitude.
 
 Introduction
 ===
