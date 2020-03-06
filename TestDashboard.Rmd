@@ -41,6 +41,13 @@ The 'Update' {.storyboard}
 ### __Further Analysis__<br/>I take new songs produced by two of the artists to use for further analysis.
 
 ```{r, include=FALSE}
+load('data/lake_of_fire.RData')
+load('data/fallen_souls.RData')
+load('data/knockout.RData')
+load('data/darkest_hour.RData')
+```
+
+```{r, eval=FALSE}
 lake_of_fire_align <- 
     get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l') %>%
     compmus_align(bars, segments) %>% 
@@ -83,6 +90,52 @@ knockout_align <-
             map(segments, 
                 compmus_summarise, timbre, 
                 method = 'rms', norm = 'euclidean'))
+
+darkest_hour_align <- 
+    get_tidy_audio_analysis('5DWoPJxISs9VMRCJBzujB6') %>%
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'rms', norm = 'euclidean'))
+```
+```{r Darkest Hour}
+darkest_hour_align %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    ggtitle('Cepstrogram Darkest Hour') +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(limits=c(0, 0.8) , option = 'A') +
+    theme_classic()
+    
+darkest_hour_align %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    ggtitle('Self Similarity Darkest Hour') +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
 ```
 
 As can be seen in my storyboard from previous week I took 3 new songs to make comparisons with that have been released after I created my corpus.
@@ -101,7 +154,7 @@ This week to see how much both songs from _D-Block & S-te-fan_ compare to each o
 ```{r, include=FALSE}
 # We can use `compmus_gather_timbre` much like `compmus_gather_chroma` last week to yield a cepstrogram. Try different levels of structure -- Spotify's estimates of beats, bars, or sections -- to see which level is the most meaningful.
 ```
-```{r}
+```{r Cepstrograms}
 lake_of_fire_align %>% 
     compmus_gather_timbre %>% 
     ggplot(
@@ -113,7 +166,7 @@ lake_of_fire_align %>%
     ggtitle('Cepstrogram Lake of Fire') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'E') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
     theme_classic()
 fallen_souls_align %>% 
     compmus_gather_timbre %>% 
@@ -126,7 +179,7 @@ fallen_souls_align %>%
     ggtitle('Cepstrogram Fallen Souls') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'E') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
     theme_classic()
 knockout_align %>% 
     compmus_gather_timbre %>% 
@@ -139,7 +192,7 @@ knockout_align %>%
     ggtitle('Cepstrogram Knockout') +
     geom_tile() +
     labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'E') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
     theme_classic()
 ```
 
@@ -161,9 +214,9 @@ There is however one interesting thing about both the cepstrogram and self-simil
 #    - `angular
 ```
 
-```{r}
+```{r Self Similarity Matrices}
 lake_of_fire_align %>% 
-    compmus_self_similarity(timbre, 'cosine') %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
     ggplot(
         aes(
             x = xstart + xduration / 2, 
@@ -174,11 +227,11 @@ lake_of_fire_align %>%
     ggtitle('Self Similarity Lake of Fire') +
     geom_tile() +
     coord_fixed() +
-    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
     theme_classic() +
     labs(x = '', y = '')
 fallen_souls_align %>% 
-    compmus_self_similarity(timbre, 'cosine') %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
     ggplot(
         aes(
             x = xstart + xduration / 2, 
@@ -189,11 +242,11 @@ fallen_souls_align %>%
     ggtitle('Self Similarity Fallen Souls') +
     geom_tile() +
     coord_fixed() +
-    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
     theme_classic() +
     labs(x = '', y = '')    
 knockout_align %>% 
-    compmus_self_similarity(timbre, 'cosine') %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
     ggplot(
         aes(
             x = xstart + xduration / 2, 
@@ -204,7 +257,7 @@ knockout_align %>%
     ggtitle('Self Similarity Knockout') +
     geom_tile() +
     coord_fixed() +
-    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
     theme_classic() +
     labs(x = '', y = '')
 ```
@@ -258,13 +311,64 @@ The Data {.storyboard}
 
 ### __Data Understanding__<br/>In this section I do a quick exploration of the data. I look if there may be already some patterns. {data-commentary-width=600}
 
-```{r First Scatterplots}
-dance <- ggplot(all_songs, aes(x=num, y=danceability, col=artist_name)) + geom_point() +
-  labs(color='Artist', title='Scatterplot of Danceability') +
+```{r Violinplots}
+create_violin <- function(cat, catstr){
+  plt <- ggplot(all_songs, aes(x=num, y=cat, fill=artist_name, col=artist_name)) +
+    geom_violin() +
+    labs(fill='Artist', color='Artist', title=paste('Violinplot of', catstr)) +
+    ylab(catstr) +
+    theme_minimal() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+  print(plt)
+}
+
+create_violin(all_songs$danceability, 'Danceability')
+create_violin(all_songs$energy, 'Energy')
+ggplot(all_songs, aes(x=key, fill=artist_name)) + geom_histogram(bins=12) + 
+  labs(fill='Artist', title='Histograms of Key') +
+  xlab('Key') +
+  ylab('Count') +
+  facet_grid(~ artist_name) + 
+  theme(strip.text=element_text()) +
+  theme(legend.position='none')
+create_violin(all_songs$loudness, 'Loudness')
+ggplot(all_songs, aes(x=mode, fill=artist_name)) + geom_histogram(bins=2) + 
+  labs(fill='Artist', title='Histogram of Mode') +
+  xlab('Mode') +
+  ylab('Count') +
+  facet_grid( ~ artist_name) +
+  scale_x_continuous(breaks=c(0,1)) +
+  theme(strip.text=element_text()) +
+  theme(legend.position='none')
+create_violin(all_songs$speechiness, 'Speechiness')
+create_violin(all_songs$acousticness, 'Acousticness')
+create_violin(all_songs$instrumentalness, 'Instrumentalness')
+create_violin(all_songs$liveness, 'Liveness')
+create_violin(all_songs$valence, 'Valence')
+#create_violin(all_songs$tempo, 'Tempo')
+ggplot(all_songs, aes(x=num, y=tempo)) +
+  geom_point() +
+  labs(color='Artist', title='Scatterplot of Tempo') +
+  ylab('Tempo') +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r, eval=FALSE}
+dance <- ggplot(all_songs, aes(x=num, y=danceability, fill=artist_name, col=artist_name)) + 
+  #geom_point() +
+  geom_violin() +
+  labs(fill='Artist', color='Artist', title='Scatterplot of Danceability') +
   xlab('Track Num') +
   ylab('Danceability') +
   theme(legend.position='left')
-energy <- ggplot(all_songs, aes(x=num, y=energy, col=artist_name)) + geom_point() + 
+energy <- ggplot(all_songs, aes(x=num, y=energy, fill=artist_name, col=artist_name)) + 
+  #geom_point() + 
+  geom_violin() +
   labs(color='Artist', title='Scatterplot of Energy') +
   xlab('Track Num') +
   ylab('Energy') +
@@ -320,29 +424,17 @@ tempo <- ggplot(all_songs, aes(x=num, y=tempo, col=artist_name)) + geom_point() 
   ylab('Tempo') +
   theme(legend.position='right')
 
-dance
-energy
-key
-loud
-mode
-speech
-acoust
-inst
-live
-valence
-tempo
-
-#ggplotly(dance)
-#ggplotly(energy)
-#ggplotly(key)
-#ggplotly(loud)
-#ggplotly(mode)
-#ggplotly(speech)
-#ggplotly(acoust)
-#ggplotly(inst)
-#ggplotly(live)
-#ggplotly(valence)
-#ggplotly(tempo)
+#dance
+#energy
+#key
+#loud
+#mode
+#speech
+#acoust
+#inst
+#live
+#valence
+#tempo
 ```
 
 ***
