@@ -38,239 +38,102 @@ SetEnvVars()
 The 'Update' {.storyboard}
 ===
 
-### __Further Analysis__<br/>I take new songs produced by two of the artists to use for further analysis.
-
-```{r, include=FALSE}
+```{r Load Align Frames, include=FALSE}
 load('data/lake_of_fire.RData')
 load('data/fallen_souls.RData')
 load('data/knockout.RData')
 load('data/darkest_hour.RData')
 ```
 
-```{r, eval=FALSE}
-lake_of_fire_align <- 
-    get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l') %>%
-    compmus_align(bars, segments) %>% 
-    select(bars) %>% unnest(bars) %>% 
-    mutate(
-        pitches = 
-            map(segments, 
-                compmus_summarise, pitches, 
-                method = 'rms', norm = 'euclidean')) %>% 
-    mutate(
-        timbre = 
-            map(segments, 
-                compmus_summarise, timbre, 
-                method = 'rms', norm = 'euclidean'))
-fallen_souls_align <- 
-    get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN') %>%
-    compmus_align(bars, segments) %>% 
-    select(bars) %>% unnest(bars) %>% 
-    mutate(
-        pitches = 
-            map(segments, 
-                compmus_summarise, pitches, 
-                method = 'rms', norm = 'euclidean')) %>% 
-    mutate(
-        timbre = 
-            map(segments, 
-                compmus_summarise, timbre, 
-                method = 'rms', norm = 'euclidean'))
-knockout_align <- 
-    get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn') %>%
-    compmus_align(bars, segments) %>% 
-    select(bars) %>% unnest(bars) %>% 
-    mutate(
-        pitches = 
-            map(segments, 
-                compmus_summarise, pitches, 
-                method = 'rms', norm = 'euclidean')) %>% 
-    mutate(
-        timbre = 
-            map(segments, 
-                compmus_summarise, timbre, 
-                method = 'rms', norm = 'euclidean'))
+### __Summary__<br/>This week I took the feedback from the class to improve my portfolio.
 
-darkest_hour_align <- 
-    get_tidy_audio_analysis('5DWoPJxISs9VMRCJBzujB6') %>%
-    compmus_align(bars, segments) %>% 
-    select(bars) %>% unnest(bars) %>% 
-    mutate(
-        pitches = 
-            map(segments, 
-                compmus_summarise, pitches, 
-                method = 'rms', norm = 'euclidean')) %>% 
-    mutate(
-        timbre = 
-            map(segments, 
-                compmus_summarise, timbre, 
-                method = 'rms', norm = 'euclidean'))
+Last class my portfolio was shown. Despite the positive remarks, quite some points of improvement were mentioned as well.
+So, as I felt that dealing with these points instead of creating further plots will for now increase the clarity and quality of my portfolio more, I went on to that for this weeks update.
+
+To summarise the things I have done this week:
+
+* I changed my initial Data Exploration plots from scatterplots to violin plots to convey more information about the data in a glance. The changes can be found at [The Data].
+* I normalised the range of the magnitude of the cepstrograms to all be between 0 and 0.8, this way spots with the same brightness will have the same magnitude thus allowing better comparison.
+* As mentioned in class _Knockout_ showed a very interesting pattern in its self similarity matrix; not only a diagonal line from bottom left to top right, but also some vague lines going from top left to bottom right. In the next story I am going to find out where this comes from.
+* When looking at the cepstrograms I found that c03 corresponded with someone singing. c04, however, has only one bright spot in the cepstrogram of _Lake of Fire_. When listening to this song I heard that it corresponded with a very unique part in the song. This part sounded quite familiar to me, I had heard this in _Darkest Hour of the Clock_ from _D-Block & S-te-Fan_! To see whether this part is indeed present in that song as well I made a cepstrogram and self similarity matrix for that song as well. This may indicate a unique feature for _D-Block & S-te-Fan_, but if it is useful for classification is to be seen. (The analysis can be seen two stories further)
+
+I also wanted to perform VariMax Rotation on the Principal Components however due to some techical difficulties with R not enough time for this was left.
+
+
+### __The symmetry of Knockout__<br/>I dive on the interesting pattern found in the self similarity of Knockout.{data-commentary-width=550}
+
+```{r Load Knockout, include=FALSE}
+load('plots/ko_ss.RData')
+load('plots/ko_cept.RData')
 ```
-```{r Darkest Hour}
-darkest_hour_align %>% 
-    compmus_gather_timbre %>% 
-    ggplot(
-        aes(
-            x = start + duration / 2, 
-            width = duration, 
-            y = basis, 
-            fill = value)) + 
-    ggtitle('Cepstrogram Darkest Hour') +
-    geom_tile() +
-    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(limits=c(0, 0.8) , option = 'A') +
-    theme_classic()
-    
-darkest_hour_align %>% 
-    compmus_self_similarity(timbre, 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    ggtitle('Self Similarity Darkest Hour') +
-    geom_tile() +
-    coord_fixed() +
-    scale_fill_viridis_c(option = 'A', guide = 'none') +
-    theme_classic() +
-    labs(x = '', y = '')
-```
+```{r Plot Knockout}
+ko_ss
+ko_cept
 
-As can be seen in my storyboard from previous week I took 3 new songs to make comparisons with that have been released after I created my corpus.
-These songs include:
-
-* _Lake Of Fire_ as comparison song from _D-Block & S-te-Fan_.
-* _Fallen Souls_ as base-line song for _D-Block & S-te-Fan_.
-* _Knockout_ as base-line song for _Da Tweekaz_.
-
-I took these songs since I found both songs from _D-Block & S-te-Fan_ and the song from _Da Tweekaz_ to be very unique and distinctive songs for both these artists.
-Previous week I made two _Dynamic Time Warp_ plots to see whether I could find any similarities or differences using that. 
-This week to see how much both songs from _D-Block & S-te-fan_ compare to each other and how the comparison song from _D-Block & S-te-fan_ differs from the song from _Da Tweekaz_ I made cepstrograms and self-similarity matrices for all songs and compare these in the next two stories.
-
-### __Cepstrograms of the songs__ {data-commentary-width=600}
-
-```{r, include=FALSE}
-# We can use `compmus_gather_timbre` much like `compmus_gather_chroma` last week to yield a cepstrogram. Try different levels of structure -- Spotify's estimates of beats, bars, or sections -- to see which level is the most meaningful.
-```
-```{r Cepstrograms}
-lake_of_fire_align %>% 
-    compmus_gather_timbre %>% 
-    ggplot(
-        aes(
-            x = start + duration / 2, 
-            width = duration, 
-            y = basis, 
-            fill = value)) + 
-    ggtitle('Cepstrogram Lake of Fire') +
-    geom_tile() +
-    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
-    theme_classic()
-fallen_souls_align %>% 
-    compmus_gather_timbre %>% 
-    ggplot(
-        aes(
-            x = start + duration / 2, 
-            width = duration, 
-            y = basis, 
-            fill = value)) + 
-    ggtitle('Cepstrogram Fallen Souls') +
-    geom_tile() +
-    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
-    theme_classic()
-knockout_align %>% 
-    compmus_gather_timbre %>% 
-    ggplot(
-        aes(
-            x = start + duration / 2, 
-            width = duration, 
-            y = basis, 
-            fill = value)) + 
-    ggtitle('Cepstrogram Knockout') +
-    geom_tile() +
-    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
-    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
-    theme_classic()
+#library(jpeg)
+#img <- readJPEG('data/Knockout.JPG')
+knitr::include_graphics('data/Knockout.JPG')
 ```
 
 ***
 
-Although the cepstrograms look very nice, it does not give a direct clue that _Lake of Fire_ and _Fallen Souls_ are from the same artist.
-The only thing that can be noticed is that both songs are less loud than _Knockout_.
-Sadly we don't see any patterns that are both in _Lake of Fire_ and _Fallen Souls_ and not in _Knockout_.
-There is however one interesting thing about both the cepstrogram and self-similarity matrices of the three songs, but I will explain that in the Self-Similarity Matrix section.
+When my portfolio was shown in class Ashley mentioned seeing something unqiue in the self similarity matrix of _Knockout_.
+To show this more clearly I changed the colors of the cepstrograms and self similarity matrices to a more contrastive colorscheme.
 
-### __Self-Similarity Matrix of the songs__ {data-commentary-width=600}
+We are now able to destinguish not only the standard diagonal line going from bottom left to top right in the cepstrogram of _Knockout_, but also a more vague line going from top left to bottom right. 
+This means that not only is there similarity if you would play this track in two instances at once (pretty obvious), but also if you would play one of the instances in reverse.
 
-```{r, inlude=FALSE}
-#- `compmus_long_distance` to compare to series of audio features against each other using common distance metrics, including:
-#    - `manhattan`
-#    - `aitchison`
-#    - `euclidean`
-#    - `cosine`
-#    - `angular
+We see that this line does not start and end exactly in the corners, which can be explained by the song having an intro that is different from its outro, but still spans quite a lot of the song.
+When listening to the song I heard very similar parts.
+That is why plotted the cepstrogram of the song again. We see that the song is very symmetrical, you would be able to put a vertical line around 80 seconds to divide the cepstrogram in two very identical parts. As expected we see that the first 20 and last 30 seconds do differ from each other explaining the inverse similarity line being in the top left and bottom right corners.
+
+Looking at the cepstrogram made me curious whether I would be able to see this symmetricity from the actual audio file or even find this point. So I downloaded the song and put it in Audacity (audio editing software). First I loaded the song in regular playback then I imported the song again and reversed it.
+The result can be seen in the image below the cepstrogram.
+
+We see that this song is indeed very repetitive in that it has the same pattern twice, with the first occurence of this pattern being slightly longer than the second occurence.
+This pattern contains the following parts:
+
+1 Some singing without much extras.
+2 Repetition of this singing but now with added drums.
+3 (Short) Buildup.
+4 Drop.
+
+Both occurences of the song contain the same lyrics and melodies thus meaning that this pattern can be repeated forever.
+The possibility of inversing the song comes from parts 1 and 2 being exactly the same apart from some added drums, that just follow the rithm of this part and thus only increases the intesity of the beats.
+
+When two drops then are aligned this song will sound kinda similar to another instance of this song played in reverse. Only the lyrics do sound kinda strange since the voice is reversed as well, resulting in an unpleasant experience to the ear and the reason I have not included a link to the combination of these instances.
+
+Whether this pattern of a song is common use for _Da Tweekaz_ needs to be seen, but at least this is an interesting feature that might be useful for later research.
+
+
+### __Darkest Hour of the Clock__<br/>I further analyse interesting patterens from previous week and bring out another song for this.{data-commentary-width=550}
+
+```{r Loading Darkest Hour, include=FALSE}
+load('plots/lf_cept.RData')
+load('plots/dh_cept.RData')
+load('plots/dh_ss.RData')
+
+load('plots/fs_cept.RData')
 ```
-
-```{r Self Similarity Matrices}
-lake_of_fire_align %>% 
-    compmus_self_similarity(timbre, 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    ggtitle('Self Similarity Lake of Fire') +
-    geom_tile() +
-    coord_fixed() +
-    scale_fill_viridis_c(option = 'A', guide = 'none') +
-    theme_classic() +
-    labs(x = '', y = '')
-fallen_souls_align %>% 
-    compmus_self_similarity(timbre, 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    ggtitle('Self Similarity Fallen Souls') +
-    geom_tile() +
-    coord_fixed() +
-    scale_fill_viridis_c(option = 'A', guide = 'none') +
-    theme_classic() +
-    labs(x = '', y = '')    
-knockout_align %>% 
-    compmus_self_similarity(timbre, 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    ggtitle('Self Similarity Knockout') +
-    geom_tile() +
-    coord_fixed() +
-    scale_fill_viridis_c(option = 'A', guide = 'none') +
-    theme_classic() +
-    labs(x = '', y = '')
+```{r Plotting Darkest Hour}
+lf_cept
+dh_cept
+#dh_ss
+fs_cept
 ```
 
 ***
 
-Looking at the Self-Similarity matrices we do see very different plots. This, however, is again not what I wanted to see, since I would've hoped for shared features between the first two matrices. This was ofcourse to be expected since both the cepstrograms and similarity matrices are made with the same data/features of the three songs.
+As I mentioned in the summary of this weeks update I saw an interesting feature in the cepstrogram of _Lake of Fire_: There is one hotspot at c04.
 
-Since the similarity matrix of _Fallen Souls_ looked so interesting because of it having only one yellow horizontal (and thus vertical) line.
-When listening to all three songs if found out that the yellow parts in both the cepstrograms and similarity matrices of _Lake of Fire_ and _Knockout_ corresponded to a 'drop' or at least and increase in overall music intensity and especially an increase in intensity of the bass frequencies.
-The interesting bit is that the yellow part in _Fallen Souls_ actually corresponds with the sound of a piano! This piano is supported with a high sound in the background at about the same height resulting in an high magnitude at c02. It is also worth noticing that after this bit there is an increase in magnitude at the c05 level. This is because after both high magnitude bits at c02 there is a part where a female voice sings:
-"In a place afar from home, there is a haunted house along an empty road, and if you listen close you can hear the whispers of the fallen souls" before going to a lower singing height.
-The dark blue squares correspond to the sound of only a synth sounding the main melody of the song, explaining the relative small magnitude.
+When listening to the song at especially this part of the song I found that this part corresponds to a very unique piece of the song, just a wall of noise... I did however recocognise this part as it also occurs in another song of _D-Block & S-te-Fan_: _Darkest Hour of the Clock_.
+In this song the same part occurs around 2 minutes for a longer duration and more intense and shorter around 3 minutes. I thus was interested whether I would be able to see two hotspots at c04 in this song as well.
+
+For comparison I first plotted the cepstrogram of _Lake of Fire_ and we indeed see this very bright spot at 50 seconds into the song at c04.
+If we now look at the c04 row of _Darkest Hour of the Clock_ we again see bright spots. If we look closely we see that these are indeed around the times I expected them to be!
+This thus means that this is quite a unique feature for this artist! However, only in these songs... Because if we take a look at the cepstrogram of _Fallen Souls_ we don't see any bright spots in the c04 row at all.
+
+There might still be a chance that the model I will create in the upcoming weeks will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
 
 Introduction
 ===
@@ -281,7 +144,7 @@ Column
 ### The Idea
 
 For my project I'm going to do research in the genre of hardstyle music.
-A lot of people would say that the music within this genre is all alike. However there is a common assumption that each artist distinguishes him- (or her)self with his (or her) unique style and sound. This are most noticable in the tones used in the so called _drop_ and as bass-kick.
+A lot of people would say that the music within this genre is all alike. However there is a common assumption that each artist distinguishes him- (or her)self with his (or her) unique style and sound. This is most noticable in the tones used in the so called _drop_ and as bass-kick.
 
 I'm going to research whether this assumption can be proved with a (computer)model. In particular a classification model that can classify a song with an artist (assumed that this song is of one of the artists used for training the model). Because if such model can be used we can assume that indeed there is something in the songs that are unique for each artist.
 However if such model is not possible, I'm going to research why this is the case, or what is necessary to create such model.
@@ -304,12 +167,12 @@ Brennan Heart      | 100
 Showtek            | 88
 Da Tweekaz         | 62
 Sub Zero Project   | 56
-D-Block & S-te-Fan | 47tt
+D-Block & S-te-Fan | 47
 
 The Data {.storyboard}
 ===
 
-### __Data Understanding__<br/>In this section I do a quick exploration of the data. I look if there may be already some patterns. {data-commentary-width=600}
+### __Data Understanding__<br/>In this section I do a quick exploration of the data. I look if there may be already some patterns. {data-commentary-width=550}
 
 ```{r Violinplots}
 create_violin <- function(cat, catstr){
@@ -321,7 +184,11 @@ create_violin <- function(cat, catstr){
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
           axis.ticks.x=element_blank())
-  print(plt)
+  if (catstr == 'Danceability'){plt <- plt + theme(legend.position = 'left')}
+  else if (catstr == 'Tempo') {plt <- plt + theme(legend.position = 'right')}
+  else {plt <- plt + theme(legend.position = 'none')}
+  #print(plt)
+  plt
 }
 
 create_violin(all_songs$danceability, 'Danceability')
@@ -347,94 +214,15 @@ create_violin(all_songs$acousticness, 'Acousticness')
 create_violin(all_songs$instrumentalness, 'Instrumentalness')
 create_violin(all_songs$liveness, 'Liveness')
 create_violin(all_songs$valence, 'Valence')
-#create_violin(all_songs$tempo, 'Tempo')
-ggplot(all_songs, aes(x=num, y=tempo)) +
-  geom_point() +
-  labs(color='Artist', title='Scatterplot of Tempo') +
-  ylab('Tempo') +
-  theme_minimal() +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-```
-
-```{r, eval=FALSE}
-dance <- ggplot(all_songs, aes(x=num, y=danceability, fill=artist_name, col=artist_name)) + 
-  #geom_point() +
-  geom_violin() +
-  labs(fill='Artist', color='Artist', title='Scatterplot of Danceability') +
-  xlab('Track Num') +
-  ylab('Danceability') +
-  theme(legend.position='left')
-energy <- ggplot(all_songs, aes(x=num, y=energy, fill=artist_name, col=artist_name)) + 
-  #geom_point() + 
-  geom_violin() +
-  labs(color='Artist', title='Scatterplot of Energy') +
-  xlab('Track Num') +
-  ylab('Energy') +
-  theme(legend.position='none')
-key <- ggplot(all_songs, aes(x=key, fill=artist_name)) + geom_histogram(bins=12) + 
-  labs(fill='Artist', title='Histograms of Key') +
-  xlab('Key') +
-  ylab('Count') +
-  facet_grid(~ artist_name) + 
-  theme(strip.text=element_text()) +
-  theme(legend.position='none')
-loud <- ggplot(all_songs, aes(x=num, y=loudness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Loudness') +
-  xlab('Track Num') +
-  ylab('Loudness') +
-  theme(legend.position='none')
-mode <- ggplot(all_songs, aes(x=mode, fill=artist_name)) + geom_histogram(bins=2) + 
-  labs(fill='Artist', title='Histogram of Mode') +
-  xlab('Mode') +
-  ylab('Count') +
-  facet_grid( ~ artist_name) +
-  scale_x_continuous(breaks=c(0,1)) +
-  theme(strip.text=element_text()) +
-  theme(legend.position='none')
-speech <- ggplot(all_songs, aes(x=num, y=speechiness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Speechiness') +
-  xlab('Track Num') +
-  ylab('Speechiness') +
-  theme(legend.position='none')
-acoust <- ggplot(all_songs, aes(x=num, y=acousticness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Acousticness') +
-  xlab('Track Num') +
-  ylab('Acousticness') +
-  theme(legend.position='none')
-inst <- ggplot(all_songs, aes(x=num, y=instrumentalness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Instrumentalness') +
-  xlab('Track Num') +
-  ylab('Instrumentalness') +
-  theme(legend.position='none')
-live <- ggplot(all_songs, aes(x=num, y=liveness, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Liveness') +
-  xlab('Track Num') +
-  ylab('Liveness') +
-  theme(legend.position='none')
-valence <- ggplot(all_songs, aes(x=num, y=valence, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Valence') +
-  xlab('Track Num') +
-  ylab('Valence') +
-  theme(legend.position='none')
-tempo <- ggplot(all_songs, aes(x=num, y=tempo, col=artist_name)) + geom_point() + 
-  labs(color='Artist', title='Scatterplot of Tempo') +
-  xlab('Track Num') +
-  ylab('Tempo') +
-  theme(legend.position='right')
-
-#dance
-#energy
-#key
-#loud
-#mode
-#speech
-#acoust
-#inst
-#live
-#valence
-#tempo
+create_violin(all_songs$tempo, 'Tempo')
+#ggplot(all_songs, aes(x=num, y=tempo)) +
+#  geom_point() +
+#  labs(color='Artist', title='Scatterplot of Tempo') +
+#  ylab('Tempo') +
+#  theme_minimal() +
+#  theme(axis.title.x=element_blank(),
+#        axis.text.x=element_blank(),
+#        axis.ticks.x=element_blank())
 ```
 
 ***
@@ -470,12 +258,14 @@ The track features include many features including the following numeric feature
 
 This is a lot of data in which some features may be very similar for all songs. It is useless to include this data in the trainingsdata for the classifier since it wouldn't provide good information to distinguish two songs from each other, let alone different artists.
 
-To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. I have plotted each of them here (I would have made them interactive however due to limitations of the _plotly_ package they are just images. From these plots you can observe that the _Mode_ features is not useful. Some other features don't seem to show any clear patterns on their own too. That is why I have plotted each feature relative to the other features. If one of these plots already show clusters we probably only need to use these two features to train a classifier with. However I have put these plots in a separate [document](https://github.com/Saltpile123/CM_Portfolio/blob/master/plots/All_features_relative.md) because of the amount (121) and because no plot seems to show any clear clusters.
+To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. I have plotted each of them here (I would have made them interactive however due to limitations of the _plotly_ package they are just images. From these plots you can observe that the _Mode_ feature is not useful. Some other features don't seem to show any clear patterns on their own too. That is why I have plotted each feature relative to the other features. If one of these plots already show clusters we probably only need to use these two features to train a classifier with. However I have put these plots in a separate [document](https://github.com/Saltpile123/CM_Portfolio/blob/master/plots/All_features_relative.md) because of the amount (121) and because no plot seems to show any clear clusters.
+
 So although the scatterplots did seem to show some nice patterns, these patterns seem to be very similar among the artists.
 This thus means we need to perform Principal Component Analysis.
 I will elaborate more on this in the Data Preparation section. If the PCA provides us with good clusters we know that we can quite easily build a classifier, however if the PCA doesn't provide us with any noticable clusters it may be possible that the data still can be clustered, but in higher dimensions. This, however, is quite hard to visualize, thus then I will probably just feed the data to the classifier and hopefully it will be able to draw relations between the features and the artist.
 
-### __Data Preparation__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=700}
+
+### __Data Preparation__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
 
 ```{r PCA & Clusters, fig.width=10, fig.align='center'}
 all_songs_pca <- prcomp(all_songs[,1:11])
@@ -559,11 +349,13 @@ However, since taking only 20% of the data as validation data, this means we get
 For this reason I'm going to perform cross validation on the data with 5 batches. This means that I'm going to shuffle the data and then divide the data into 5 parts (thus each part is 20% of the data). After that I will repeatedly take one part as testset and the other parts as trainingset.
 This way all data will be once testdata and 4 times trainingsdata, resulting in a model that has seen more data and thus is less overfitted on that data, hopefully giving a model that can classify novel songs better.
 
-Testing on Novel Data
+Testing on Novel Data {.storyboard}
 ===
 
-Column {.tabset}
----
+```{r}
+#Column {.tabset}
+#---
+```
 
 ### __Novel Data__<br/>I gather the songs that are released after I made my initial corpus, to use as novel test data. {data-commentary-width=750}
 
@@ -583,6 +375,7 @@ Da Tweekaz | [Power Of Perception](https://open.spotify.com/track/3QFVJxsqDK6ThO
 Da Tweekaz | [Knockout](https://open.spotify.com/track/5LSCfqeq1u1GxKogSQFEZn?si=l2ljGiQxRKK4lCmmviuxxw)
 Da Tweekaz | [We Made It](https://open.spotify.com/track/6yhvInrBQThvos9CNDJV8H?si=61bAoSpYTViDr6nDZV00mg)
 
+
 ### __Song Similarity using Chroma Features__<br/> I compare some songs by comparing their chromagrams.
 
 One way to maybe see to whether two songs belong to the same artist would be by using chromagrams. From the list of novel songs we see that both _D-Block & S-te-Fan_ and _Da Tweekaz_ have released the most songs in the past weeks. So I choose to use 2 songs from _D-Block & S-te-Fan_ and one song from _Da Tweekaz_:
@@ -595,65 +388,65 @@ Then I created a _Dynamic Time Warp_ plot between the comparison and one base-li
 
 The plots can be found below:
 
-```{r Chromagrams}
-#load('data/novel_samples.RData')
-
-lake_of_fire <- 
-    get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l') %>% 
-    select(segments) %>% unnest(segments) %>% 
-    select(start, duration, pitches)
-fallen_souls <- 
-  get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN') %>% 
-  select(segments) %>% unnest(segments) %>% 
-  select(start, duration, pitches)
-
-db_st_plt <- compmus_long_distance(
-    lake_of_fire %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
-    fallen_souls %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
-    feature = pitches,
-    method = 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    geom_tile() +
-    scale_fill_continuous(type = 'viridis', guide = 'none') +
-    labs(x = 'Lake Of Fire (D-Block & S-te-Fan)', y = 'Fallen Souls (D-Block & S-te-Fan)') +
-    theme_minimal()
-
-knockout <- 
-  get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn') %>% 
-  select(segments) %>% unnest(segments) %>% 
-  select(start, duration, pitches)
-
-dbst_dt_plt <- compmus_long_distance(
-    lake_of_fire %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
-    knockout %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
-    feature = pitches,
-    method = 'euclidean') %>% 
-    ggplot(
-        aes(
-            x = xstart + xduration / 2, 
-            width = xduration,
-            y = ystart + yduration / 2,
-            height = yduration,
-            fill = d)) + 
-    geom_tile() +
-    scale_fill_continuous(type = 'viridis', guide = 'none') +
-    labs(x = 'Lake Of Fire (D-Block & S-te-Fan)', y = 'Knockout (Da Tweekaz)') +
-    theme_minimal()
-
+```{r Load Dynamic Time Warps, include=FALSE}
+load('plots/lf_fs_ld.RData')
+load('plots/lf_ko_ld.RData')
+```
+```{r Plot Dynamic Time Warps}
 db_st_plt
 dbst_dt_plt
-#ggplotly(dbst_dt_plt)
 ```
 
 In my opinion the DTW between the two _D-Block & S-te-Fan_ songs looks a lot more symmetrical, which would indicate that both songs both follow a similar pattern. This while in DTW between the _D-Block & S-te-Fan_ song and  the _Da Tweekaz_ song both songs are very destinguishable, which would indicate that they are very dissimilar from each other.
 
 We now need to find a way to convert this dissimilarity into a way to link an artist with a song.
+So I made cepstrograms and self-similarity matrices for these novel songs and compare these in the next two stories.
+
+### __Cepstrograms of the songs__ {data-commentary-width=550}
+
+
+```{r Load Cepstrograms, include=FALSE}
+load('plots/lf_cept.RData')
+load('plots/fs_cept.RData')
+load('plots/ko_cept.RData')
+```
+```{r Plot Cepstrograms}
+lf_cept
+fs_cept
+ko_cept
+```
+
+***
+
+Although the cepstrograms look very nice, it does not give a direct clue that _Lake of Fire_ and _Fallen Souls_ are from the same artist.
+The only thing that can be noticed is that both songs are less loud than _Knockout_.
+Sadly we don't see any patterns that are both in _Lake of Fire_ and _Fallen Souls_ and not in _Knockout_.
+There is however one interesting thing about both the cepstrogram and self-similarity matrices of the three songs, but I will explain that in the Self-Similarity Matrix section.
+
+### __Self-Similarity Matrix of the songs__ {data-commentary-width=550}
+
+```{r Load Self Similarity Matrices, include=FALSE}
+load('plots/lf_ss.RData')
+load('plots/fs_ss.RData')
+load('plots/ko_ss.RData')
+```
+```{r Plot Self Similarity Matrices}
+lf_ss
+fs_ss
+ko_ss
+```
+
+***
+
+Looking at the Self-Similarity matrices we do see very different plots. This, however, is again not what I wanted to see, since I would've hoped for shared features between the first two matrices. This was ofcourse to be expected since both the cepstrograms and similarity matrices are made with the same data/features of the three songs.
+
+Since the similarity matrix of _Fallen Souls_ looked so interesting because of it having only one yellow horizontal (and thus vertical) line.
+When listening to all three songs if found out that the yellow parts in both the cepstrograms and similarity matrices of _Lake of Fire_ and _Knockout_ corresponded to a 'drop' or at least and increase in overall music intensity and especially an increase in intensity of the bass frequencies.
+
+The interesting bit is that the yellow part in _Fallen Souls_ actually corresponds with the sound of a piano! This piano is supported with a high sound in the background at about the same height resulting in an high magnitude at c02. It is also worth noticing that after this bit there is an increase in magnitude at the c05 level. This is because after both high magnitude bits at c02 there is a part where a female voice sings:
+"In a place afar from home, there is a haunted house along an empty road, and if you listen close you can hear the whispers of the fallen souls" before going to a lower singing height.
+The dark blue squares correspond to the sound of only a synth sounding the main melody of the song, explaining the relative small magnitude.
+
 
 Upcoming {.storyboard}
 ===
@@ -680,8 +473,3 @@ Optimally we want to create a model that uses only the features returned by the 
 If two artists turn out to be very similar in each model, I may look for the most similar tracks and subjectively compare them by for example listening to them to see whether those tracks are indeed similar to the ear as well.
 
 For the future I hope that some of the artists used to build the model will release new songs, thus allowing me to test the model on novel data to see whether the model is indeed as good as it proved to be on the testdata.
-
-
-IDEE:
-lake of fire vergelijken met een random song van elke andere artiest
-maar ff kijken hoe en wat
