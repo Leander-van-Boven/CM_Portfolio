@@ -24,10 +24,12 @@ library(reshape2)
 library(factoextra)
 library(cluster)
 library(spotifyr)
-library(shiny)
 library(grid)
 library(gridExtra)
 library(compmus)
+library(caret)
+library(keras)
+
 load("spotify_env_vars.RData")
 load("data/all_songs.RData")
 SetEnvVars()
@@ -199,6 +201,7 @@ ggplot(all_songs, aes(x=key, fill=artist_name)) + geom_histogram(bins=12) +
   ylab('Count') +
   facet_grid(~ artist_name) + 
   theme(strip.text=element_text()) +
+  theme_minimal() +
   theme(legend.position='none')
 create_violin(all_songs$loudness, 'Loudness')
 ggplot(all_songs, aes(x=mode, fill=artist_name)) + geom_histogram(bins=2) + 
@@ -208,6 +211,7 @@ ggplot(all_songs, aes(x=mode, fill=artist_name)) + geom_histogram(bins=2) +
   facet_grid( ~ artist_name) +
   scale_x_continuous(breaks=c(0,1)) +
   theme(strip.text=element_text()) +
+  theme_minimal() +
   theme(legend.position='none')
 create_violin(all_songs$speechiness, 'Speechiness')
 create_violin(all_songs$acousticness, 'Acousticness')
@@ -348,6 +352,70 @@ However, since taking only 20% of the data as validation data, this means we get
 
 For this reason I'm going to perform cross validation on the data with 5 batches. This means that I'm going to shuffle the data and then divide the data into 5 parts (thus each part is 20% of the data). After that I will repeatedly take one part as testset and the other parts as trainingset.
 This way all data will be once testdata and 4 times trainingsdata, resulting in a model that has seen more data and thus is less overfitted on that data, hopefully giving a model that can classify novel songs better.
+
+```{r}
+build_model <- function() {
+  model <- keras_model_sequential() %>%
+    layer_dense(units=15, activation='relu', input_shape = 9) %>% 
+    #layer_dense(units=15, activation='relu') %>% 
+    layer_dense(units=7, activation='softmax')
+  
+  model %>% compile(
+    optimizer = 'rmsprop',
+    loss = 'categorical_crossentropy',
+    metrics = c('accuracy')
+  )
+}
+```
+
+```{r, eval=FALSE}
+## 75% of the sample size
+train_size <- floor(0.80 * nrow(all_songs))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(all_songs)), size = train_size)
+
+train <- all_songs[train_ind, ]
+test <- all_songs[-train_ind, ]
+```
+
+```{r}
+train_data <- scale(all_songs[,1:9])
+train_targets <- to_categorical(as.integer(as.factor(all_songs$artist_name)))
+
+set.seed(123)
+k <- 5
+indices <- sample(1:nrow(train_data))
+folds <- cut(1:length(indices), breaks = k, labels = FALSE) 
+fold_indices <- folds[indices]
+num_epochs <- 100
+all_scores <- c()
+for (i in 1:k) {
+  cat("processing fold #", i, "\n")
+  # Prepare the validation data: data from partition # k
+  val_indices <- which(folds == i, arr.ind = TRUE) 
+  val_data <- train_data[val_indices,]
+  val_targets <- train_targets[val_indices,]
+  
+  # Prepare the training data: data from all other partitions
+  partial_train_data <- train_data[-val_indices,]
+  partial_train_targets <- train_targets[-val_indices,]
+  
+  # Build the Keras model (already compiled)
+  model <- build_model()
+  
+  # Train the model (in silent mode, verbose=0)
+  model %>% fit(partial_train_data, partial_train_targets,
+                epochs = num_epochs, batch_size = 1, verbose = 0)
+                
+  # Evaluate the model on the validation data
+  results <- model %>% evaluate(val_data, val_targets, verbose = 0)
+  all_scores <- c(all_scores, results$mae)
+} 
+
+all_scores
+```
 
 Testing on Novel Data {.storyboard}
 ===
