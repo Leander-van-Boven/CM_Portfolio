@@ -5,7 +5,7 @@ author: "Leander van Boven - 12997080"
 #runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
-    theme: united
+    theme: flatly
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
@@ -29,6 +29,11 @@ library(gridExtra)
 library(compmus)
 library(caret)
 library(keras)
+#library(formattable)
+library(ramify)
+library(e1071)
+library(kableExtra)
+
 
 load("spotify_env_vars.RData")
 load("data/all_songs.RData")
@@ -37,105 +42,6 @@ SetEnvVars()
 #save(all_songs, file='data/all_songs.RData')
 ```
 
-The 'Update' {.storyboard}
-===
-
-```{r Load Align Frames, include=FALSE}
-load('data/lake_of_fire.RData')
-load('data/fallen_souls.RData')
-load('data/knockout.RData')
-load('data/darkest_hour.RData')
-```
-
-### __Summary__<br/>This week I took the feedback from the class to improve my portfolio.
-
-Last class my portfolio was shown. Despite the positive remarks, quite some points of improvement were mentioned as well.
-So, as I felt that dealing with these points instead of creating further plots will for now increase the clarity and quality of my portfolio more, I went on to that for this weeks update.
-
-To summarise the things I have done this week:
-
-* I changed my initial Data Exploration plots from scatterplots to violin plots to convey more information about the data in a glance. The changes can be found at [The Data].
-* I normalised the range of the magnitude of the cepstrograms to all be between 0 and 0.8, this way spots with the same brightness will have the same magnitude thus allowing better comparison.
-* As mentioned in class _Knockout_ showed a very interesting pattern in its self similarity matrix; not only a diagonal line from bottom left to top right, but also some vague lines going from top left to bottom right. In the next story I am going to find out where this comes from.
-* When looking at the cepstrograms I found that c03 corresponded with someone singing. c04, however, has only one bright spot in the cepstrogram of _Lake of Fire_. When listening to this song I heard that it corresponded with a very unique part in the song. This part sounded quite familiar to me, I had heard this in _Darkest Hour of the Clock_ from _D-Block & S-te-Fan_! To see whether this part is indeed present in that song as well I made a cepstrogram and self similarity matrix for that song as well. This may indicate a unique feature for _D-Block & S-te-Fan_, but if it is useful for classification is to be seen. (The analysis can be seen two stories further)
-
-I also wanted to perform VariMax Rotation on the Principal Components however due to some techical difficulties with R not enough time for this was left.
-
-
-### __The symmetry of Knockout__<br/>I dive on the interesting pattern found in the self similarity of Knockout.{data-commentary-width=550}
-
-```{r Load Knockout, include=FALSE}
-load('plots/ko_ss.RData')
-load('plots/ko_cept.RData')
-```
-```{r Plot Knockout}
-ko_ss
-ko_cept
-
-#library(jpeg)
-#img <- readJPEG('data/Knockout.JPG')
-knitr::include_graphics('data/Knockout.JPG')
-```
-
-***
-
-When my portfolio was shown in class Ashley mentioned seeing something unqiue in the self similarity matrix of _Knockout_.
-To show this more clearly I changed the colors of the cepstrograms and self similarity matrices to a more contrastive colorscheme.
-
-We are now able to destinguish not only the standard diagonal line going from bottom left to top right in the cepstrogram of _Knockout_, but also a more vague line going from top left to bottom right. 
-This means that not only is there similarity if you would play this track in two instances at once (pretty obvious), but also if you would play one of the instances in reverse.
-
-We see that this line does not start and end exactly in the corners, which can be explained by the song having an intro that is different from its outro, but still spans quite a lot of the song.
-When listening to the song I heard very similar parts.
-That is why plotted the cepstrogram of the song again. We see that the song is very symmetrical, you would be able to put a vertical line around 80 seconds to divide the cepstrogram in two very identical parts. As expected we see that the first 20 and last 30 seconds do differ from each other explaining the inverse similarity line being in the top left and bottom right corners.
-
-Looking at the cepstrogram made me curious whether I would be able to see this symmetricity from the actual audio file or even find this point. So I downloaded the song and put it in Audacity (audio editing software). First I loaded the song in regular playback then I imported the song again and reversed it.
-The result can be seen in the image below the cepstrogram.
-
-We see that this song is indeed very repetitive in that it has the same pattern twice, with the first occurence of this pattern being slightly longer than the second occurence.
-This pattern contains the following parts:
-
-1 Some singing without much extras.
-2 Repetition of this singing but now with added drums.
-3 (Short) Buildup.
-4 Drop.
-
-Both occurences of the song contain the same lyrics and melodies thus meaning that this pattern can be repeated forever.
-The possibility of inversing the song comes from parts 1 and 2 being exactly the same apart from some added drums, that just follow the rithm of this part and thus only increases the intesity of the beats.
-
-When two drops then are aligned this song will sound kinda similar to another instance of this song played in reverse. Only the lyrics do sound kinda strange since the voice is reversed as well, resulting in an unpleasant experience to the ear and the reason I have not included a link to the combination of these instances.
-
-Whether this pattern of a song is common use for _Da Tweekaz_ needs to be seen, but at least this is an interesting feature that might be useful for later research.
-
-
-### __Darkest Hour of the Clock__<br/>I further analyse interesting patterens from previous week and bring out another song for this.{data-commentary-width=550}
-
-```{r Loading Darkest Hour, include=FALSE}
-load('plots/lf_cept.RData')
-load('plots/dh_cept.RData')
-load('plots/dh_ss.RData')
-
-load('plots/fs_cept.RData')
-```
-```{r Plotting Darkest Hour}
-lf_cept
-dh_cept
-#dh_ss
-fs_cept
-```
-
-***
-
-As I mentioned in the summary of this weeks update I saw an interesting feature in the cepstrogram of _Lake of Fire_: There is one hotspot at c04.
-
-When listening to the song at especially this part of the song I found that this part corresponds to a very unique piece of the song, just a wall of noise... I did however recocognise this part as it also occurs in another song of _D-Block & S-te-Fan_: _Darkest Hour of the Clock_.
-In this song the same part occurs around 2 minutes for a longer duration and more intense and shorter around 3 minutes. I thus was interested whether I would be able to see two hotspots at c04 in this song as well.
-
-For comparison I first plotted the cepstrogram of _Lake of Fire_ and we indeed see this very bright spot at 50 seconds into the song at c04.
-If we now look at the c04 row of _Darkest Hour of the Clock_ we again see bright spots. If we look closely we see that these are indeed around the times I expected them to be!
-This thus means that this is quite a unique feature for this artist! However, only in these songs... Because if we take a look at the cepstrogram of _Fallen Souls_ we don't see any bright spots in the c04 row at all.
-
-There might still be a chance that the model I will create in the upcoming weeks will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
 
 Introduction
 ===
@@ -144,7 +50,6 @@ Column
 ---
 
 ### The Idea
-
 For my project I'm going to do research in the genre of hardstyle music.
 A lot of people would say that the music within this genre is all alike. However there is a common assumption that each artist distinguishes him- (or her)self with his (or her) unique style and sound. This is most noticable in the tones used in the so called _drop_ and as bass-kick.
 
@@ -155,14 +60,13 @@ Column
 ---
 
 ### The Corpus
-
 To do this research we obviously need some data to work with.
 For this I'm going to use the songs from the top 5 hardstyle artists together with the songs of my 2 most favorite artists.
 Together this gives me a corpus of 698 songs where each artist has about 50 songs or more.
 This should be enough data to build a decent classification model.
 
 Artist             | Songs on Spotify
------------------- | ----------------
+------------------ |:----------------:
 Noisecontrollers   | 199
 Headhunterz        | 146
 Brennan Heart      | 100
@@ -175,7 +79,6 @@ The Data {.storyboard}
 ===
 
 ### __Data Understanding__<br/>In this section I do a quick exploration of the data. I look if there may be already some patterns. {data-commentary-width=550}
-
 ```{r Violinplots}
 create_violin <- function(cat, catstr){
   plt <- ggplot(all_songs, aes(x=num, y=cat, fill=artist_name, col=artist_name)) +
@@ -232,7 +135,6 @@ create_violin(all_songs$tempo, 'Tempo')
 ***
 
 #### Data Understanding
-
 Before trying to build a classifier we first need to do some exploration on and understanding of the data.
 In the first place we need to decide which information we are going to use for the classifier.
 For example the genre for each artist probably will be similar and thus will not be useful data.
@@ -270,7 +172,6 @@ I will elaborate more on this in the Data Preparation section. If the PCA provid
 
 
 ### __Data Preparation__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
-
 ```{r PCA & Clusters, fig.width=10, fig.align='center'}
 all_songs_pca <- prcomp(all_songs[,1:11])
 plt_pca <- ggplot(all_songs, aes(all_songs_pca$x[,1], all_songs_pca$x[,2], col=all_songs$artist_name)) + 
@@ -325,24 +226,17 @@ unique(all_songs[pam_pca$clustering==1,][,12])
 ```
 
 ### __Figure 2__ (interactive)
-
 ```{r}
 plotly_build(feat_plt)
 ```
 
 ### __Figure 3__ (interactive)
-
 ```{r}
 plotly_build(pca_plt)
 ```
 
 ### __Data Preparation__ (Subsetting)<br/>Before we can train a classifier we need training- and testingdata. To reduce data loss I use cross validation.
-
-```{r No Code}
-
-```
-
-#### (Upcoming) Subsetting the data for the classifier
+#### Subsetting the data for the classifier
 Since we are going to train a classifier we also need to seperate the data into two subsets:
 
 * A trainingset, containing about 80% of the data. This data will be used to train the classifier.
@@ -350,14 +244,121 @@ Since we are going to train a classifier we also need to seperate the data into 
 
 However, since taking only 20% of the data as validation data, this means we get only 140 songs to validate the classifier. In the best scenario this will mean 20 songs per artist, however since we don't have an equal amount of songs per artist we will most likely not get 20 songs per artist in the validation data.
 
-For this reason I'm going to perform cross validation on the data with 5 batches. This means that I'm going to shuffle the data and then divide the data into 5 parts (thus each part is 20% of the data). After that I will repeatedly take one part as testset and the other parts as trainingset.
-This way all data will be once testdata and 4 times trainingsdata, resulting in a model that has seen more data and thus is less overfitted on that data, hopefully giving a model that can classify novel songs better.
+
+#### K-Fold Cross Validation
+For this reason I'm going to perform k-fold cross validation on the data with 5 folds. This means that I'm going to shuffle the data and then divide the data into 5 parts (thus each part is 20% of the data). After that I will repeatedly take one part as testset and the other parts as trainingset.
+This way all data will be once testdata and 4 times trainingsdata, resulting in a model that has seen more data and thus is less overfitted on that data, giving a better estimate of the real performance of the model.
+
+#### Preparing the _Track Features_ Data
+The first data I am going to use to train a classifier are the _track features_.
+What data is included in this can be found in [The Data]. 
+
+To make sure each feature has the same impact on the model each feature must be scaled to be within the same limits. I choose to scale the data between 0 and 1.
+
+```{r Preparing Data, echo=TRUE}
+scale_01 <- function(x){(x-min(x))/(max(x)-min(x))}   # Define scale function
+train_data <- apply(all_songs[,1:9], 2, scale_01)     # Scale track features data
+```
+
+Then I converted the artist names to a factor vector for the support vector machine and I created a one-hot-encoding matrix of the artist names for the Keras model.
+A one-hot-encoding matrix is just a row of zeros with one 1 at the position of the true class.
+Thus the one-hot-encoding vector for a song made by Noisecontrollers will contain only zeros and 1 one at the position of Noisecontrollers in the one-hot-encoding matrix like this:
 
 ```{r}
+train_factors <- as.factor(all_songs$artist_name)     # Create factor vector for class labels
+train_targets <- to_categorical(as.integer(as.factor(all_songs$artist_name)))   # Create one-hot-encoding matrix for class labels
+train_targets <- train_targets[,2:8]                  # Get only the relevant columns
+print(train_targets[1,])
+```
+
+Now we have prepared the data value wise we can now divide the data into folds.
+To do this I first shuffle the indices of the data.
+Then I create a vector with equal amount of items per fold. Lastly I assign to each index a fold.
+
+```{r, echo=TRUE}
+set.seed(123)   # Set a seed to make reproducible results
+k <- 5          # Amount of folds
+shuffled_indices <- sample(1:nrow(train_data))                          # Shuffle the indices
+fold_breaks <- cut(1:length(shuffled_indices), breaks=k, labels=FALSE)  # Split the data into k equal parts
+fold_indices <- fold_breaks[shuffled_indices]                           # Assign a fold to each index
+```
+
+Modeling (Week 11 Update) {.storyboard}
+===
+
+### __Introduction__
+As mentioned before I'm going to train multiple models, trained on different subsets of the initial dataset:
+
+* A model trained on all features mentioned in the **Data Understanding** without the _Mode_ feature.
+* (optionally) A model trained on (a subset of) the Principal Components.
+* A model trained on deltas of timbre/chroma and delta delta of timbre/chrome.
+
+Multiclass classification models can be made in different ways.
+Because I am very intrigued by deep learning, I had the intention from the start to make a deep learning model to use for classification.
+Deep learning comes in many packages but I already had heard of TensorFlow and especially its embedding in the [Keras library](https://keras.io/).
+Keras originally is a deep learning library for the Python programming language, however I had seen a c# version as well.
+When doing Datacamp courses I noticed a course called _Introduction to TensorFlow in R_ which included lessons for Keras in R.
+So I looked into the Keras package for R and found that it works the same as Keras for Python except for some methods having other names.
+
+Multiclass classification models can, however, be made a lot easier than creating a whole Keras model, namely with [Support Vector Machines](https://en.wikipedia.org/wiki/Support-vector_machine).
+Especially since R provides very easy tools to create one.
+
+That is why I decided to not only create a Keras model but also a Support Vector Machine as comparison model to see whether deep learning is better practice for this kind of classification, or if it is way easier (with maybe better results) to just create a support vector machine model.
+
+
+### __SVM on Track Features__<br/>I create a support vector machine model on the Track Features data and assess its performance. {data-commentary-width=600}
+```{r SVM Classifier (K-Fold CV), results='asis'}
+svm_accuracies <- c()
+for (i in 1:k){
+  #print(paste('Fold:', i))
+  #cat(paste("Fold :", i))
+  cat("__Fold #", i, ":__  ")
+  # Get all data rows of this fold
+  inds <- which(fold_indices == i, arr.ind=TRUE)
+  
+  # Take these data rows as validation data
+  val_x <- train_data[inds,]
+  val_y <- train_factors[inds]
+  
+  # Take the other data rows as training data
+  train_x <- train_data[-inds,]
+  train_y <- train_factors[-inds]
+  
+  # Create a support vector machine model and assess its performance
+  svm_model <- svm(x=train_x, y=train_y)
+  predicted <- predict(svm_model, val_x)
+  confusion <- confusionMatrix(predicted, val_y)
+  acc <- confusion$overall["Accuracy"]
+  svm_accuracies <- c(svm_accuracies, acc)
+  print(acc)
+  
+  cf <- knitr::kable(table(predicted, val_y))
+  print(add_header_above(cf, c("Predicted", "Actual"=7)))
+  #print(knitr::kable(table(predicted, val_y)))
+  cat("\n")
+  #print(formattable(confusion$table))
+}
+cat("__Mean accuracy:__ ", mean(svm_accuracies))
+#knitr::kable(tables[1], "html")
+```
+
+***
+
+To compare the results of the deep learning model I have created a support vector machine on the same data.
+This data includes the track features without the _mode_ feature scaled to be in the range [0,1] and seperated into 5 parts.
+
+For each fold I created a new SVM model and used 4 parts of the data as trainingdata and the other part as validation data.
+I have printed the accuracy of each model together with its confusion matrix.
+
+
+
+### __Keras model on Track Features__<br/>Here I make a Keras deep learning model on the Track Features data.{data-commentary-width=600}
+```{r Build Model Function}
 build_model <- function() {
   model <- keras_model_sequential() %>%
-    layer_dense(units=15, activation='relu', input_shape = 9) %>% 
-    #layer_dense(units=15, activation='relu') %>% 
+    layer_dense(units=25, activation='relu', input_shape = 9) %>% 
+    layer_dense(units=20, activation='relu') %>% 
+    layer_dense(units=15, activation='relu') %>% 
     layer_dense(units=7, activation='softmax')
   
   model %>% compile(
@@ -368,67 +369,99 @@ build_model <- function() {
 }
 ```
 
-```{r, eval=FALSE}
-## 75% of the sample size
-train_size <- floor(0.80 * nrow(all_songs))
-
-## set the seed to make your partition reproducible
-set.seed(123)
-train_ind <- sample(seq_len(nrow(all_songs)), size = train_size)
-
-train <- all_songs[train_ind, ]
-test <- all_songs[-train_ind, ]
-```
-
-```{r}
-train_data <- scale(all_songs[,1:9])
-train_targets <- to_categorical(as.integer(as.factor(all_songs$artist_name)))
-
-set.seed(123)
-k <- 5
-indices <- sample(1:nrow(train_data))
-folds <- cut(1:length(indices), breaks = k, labels = FALSE) 
-fold_indices <- folds[indices]
-num_epochs <- 100
+```{r Keras Model (K-Fold CV), eval=FALSE}
+num_epochs <- 150
+accuracy_histories <- c()
 all_scores <- c()
 for (i in 1:k) {
-  cat("processing fold #", i, "\n")
+  cat("Processing fold #", i, "\n")
   # Prepare the validation data: data from partition # k
-  val_indices <- which(folds == i, arr.ind = TRUE) 
+  val_indices <- which(fold_indices == i, arr.ind = TRUE) 
+  
+  # Get the training and validation data
   val_data <- train_data[val_indices,]
   val_targets <- train_targets[val_indices,]
-  
-  # Prepare the training data: data from all other partitions
   partial_train_data <- train_data[-val_indices,]
   partial_train_targets <- train_targets[-val_indices,]
   
-  # Build the Keras model (already compiled)
+  # Build the Keras model
   model <- build_model()
   
-  # Train the model (in silent mode, verbose=0)
-  model %>% fit(partial_train_data, partial_train_targets,
-                epochs = num_epochs, batch_size = 1, verbose = 0)
-                
+  #model %>% fit(partial_train_data, partial_train_targets,
+                #epochs=num_epochs, batch_size=1, verbose=0)
   # Evaluate the model on the validation data
-  results <- model %>% evaluate(val_data, val_targets, verbose = 0)
-  all_scores <- c(all_scores, results$mae)
+  #results <- model %>% evaluate(val_data, val_targets, verbose = 0)
+  #print(paste("Loss:", results$loss, "Accuracy:", results$accuracy))
+  #all_scores <- c(all_scores, results$accuracy)
+  
+  # Train the model (in silent mode, verbose=0)
+  history <- model %>% fit(partial_train_data, partial_train_targets,
+                epochs = num_epochs, batch_size = 1, verbose = 0,
+                callbacks = callback_tensorboard(paste("logs/run_", i, sep="")),
+                validation_data = list(val_data, val_targets))
+  accuracy_histories <- rbind(accuracy_histories, history$metrics$val_accuracy)
 } 
-
-all_scores
 ```
+```{r, eval=FALSE}
+#tensorboard("logs")
+#all_scores
+average_accuracy_history <- data.frame(
+  epoch=seq(1:ncol(accuracy_histories)),
+  validation_accuracy=apply(accuracy_histories, 2, mean)
+)
+```
+```{r, eval=FALSE}
+accuracy_history_plot <- ggplot(average_accuracy_history, aes(x=epoch, y=validation_accuracy)) + 
+  geom_line() +
+  theme_minimal() +
+  labs(title="Mean accuracy per epoch")
+ggplotly(accuracy_history_plot)
+```
+```{r, eval=FALSE}
+all_accuracies <- data.frame(accuracy_histories)
+all_accuracies <- data.frame(t(all_accuracies))
+colnames(all_accuracies) <- c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5")
+all_accuracies$x <- seq(1:nrow(all_accuracies))
+all_accuracies_melted <- melt(all_accuracies, measure.vars=c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5"), id="x")
+ggplot(all_accuracies_melted, aes(x=x, y=value, col=variable)) +
+  geom_line()
+```
+```{r}
+#[](plots/epoch_accuracy_all.svg)
+#![](plots/epoch_accuracy_train.svg)
+```
+
+__Accuracy of the training data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/epoch_accuracy_train.svg)
+
+
+__Accuracy of the validation data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/epoch_accuracy_validation.svg)
+
+```{r, eval=FALSE}
+load("data/average_accuracy_history.RData")
+max(average_accuracy_history$validation_accuracy)
+argmax(average_accuracy_history, rows=FALSE)
+```
+
+***
+
+Hey jochie
+
 
 Testing on Novel Data {.storyboard}
 ===
 
-```{r}
-#Column {.tabset}
-#---
+```{r Load Align Frames, include=FALSE}
+load('data/lake_of_fire.RData')
+load('data/fallen_souls.RData')
+load('data/knockout.RData')
+load('data/darkest_hour.RData')
 ```
 
 ### __Novel Data__<br/>I gather the songs that are released after I made my initial corpus, to use as novel test data. {data-commentary-width=750}
 
 #### Novel Data
-
 As mentioned earlier, I want to test my models and techniques on novel data; songs that have been released by one of the artists of my corpus after I made my initial corpus.
 A few songs have been released already.
 I have put some of them below:
@@ -445,7 +478,6 @@ Da Tweekaz | [We Made It](https://open.spotify.com/track/6yhvInrBQThvos9CNDJV8H?
 
 
 ### __Song Similarity using Chroma Features__<br/> I compare some songs by comparing their chromagrams.
-
 One way to maybe see to whether two songs belong to the same artist would be by using chromagrams. From the list of novel songs we see that both _D-Block & S-te-Fan_ and _Da Tweekaz_ have released the most songs in the past weeks. So I choose to use 2 songs from _D-Block & S-te-Fan_ and one song from _Da Tweekaz_:
 
 * _Lake Of Fire_ as comparison song.
@@ -456,11 +488,11 @@ Then I created a _Dynamic Time Warp_ plot between the comparison and one base-li
 
 The plots can be found below:
 
-```{r Load Dynamic Time Warps, include=FALSE}
+```{r Load Dynamic Time Warps, include=FALSE, eval=FALSE}
 load('plots/lf_fs_ld.RData')
 load('plots/lf_ko_ld.RData')
 ```
-```{r Plot Dynamic Time Warps}
+```{r Plot Dynamic Time Warps, eval=FALSE}
 db_st_plt
 dbst_dt_plt
 ```
@@ -470,9 +502,8 @@ In my opinion the DTW between the two _D-Block & S-te-Fan_ songs looks a lot mor
 We now need to find a way to convert this dissimilarity into a way to link an artist with a song.
 So I made cepstrograms and self-similarity matrices for these novel songs and compare these in the next two stories.
 
+
 ### __Cepstrograms of the songs__ {data-commentary-width=550}
-
-
 ```{r Load Cepstrograms, include=FALSE}
 load('plots/lf_cept.RData')
 load('plots/fs_cept.RData')
@@ -491,8 +522,8 @@ The only thing that can be noticed is that both songs are less loud than _Knocko
 Sadly we don't see any patterns that are both in _Lake of Fire_ and _Fallen Souls_ and not in _Knockout_.
 There is however one interesting thing about both the cepstrogram and self-similarity matrices of the three songs, but I will explain that in the Self-Similarity Matrix section.
 
-### __Self-Similarity Matrix of the songs__ {data-commentary-width=550}
 
+### __Self-Similarity Matrix of the songs__ {data-commentary-width=550}
 ```{r Load Self Similarity Matrices, include=FALSE}
 load('plots/lf_ss.RData')
 load('plots/fs_ss.RData')
@@ -516,28 +547,75 @@ The interesting bit is that the yellow part in _Fallen Souls_ actually correspon
 The dark blue squares correspond to the sound of only a synth sounding the main melody of the song, explaining the relative small magnitude.
 
 
-Upcoming {.storyboard}
-===
+### __The symmetry of Knockout__<br/>I dive on the interesting pattern found in the self similarity of Knockout.{data-commentary-width=550}
+```{r Load Knockout, include=FALSE}
+load('plots/ko_ss.RData')
+load('plots/ko_cept.RData')
+```
+```{r Plot Knockout}
+ko_ss
+ko_cept
 
-> All items below are a planning and description of things I'm going to do in the upcoming weeks, these are subject to change as result of feedback and/or new things learned during the course.
+#library(jpeg)
+#img <- readJPEG('data/Knockout.JPG')
+knitr::include_graphics('data/Knockout.JPG')
+```
 
-### __Modeling__ <br/>This is where the actual models are created, and we finally see what they are capable of!
+***
 
-As mentioned before I'm going to train multiple models, trained on different subsets of the initial dataset:
+When my portfolio was shown in class Ashley mentioned seeing something unqiue in the self similarity matrix of _Knockout_.
+To show this more clearly I changed the colors of the cepstrograms and self similarity matrices to a more contrastive colorscheme.
 
-* A model trained on all features mentioned in the **Data Understanding** without the _Mode_ feature.
-* A model trained on (a subset of) the Principal Components.
-* (Optionally) A model trained on (a subset of) the `get_track_audio_analysis()` features, if necessary.
+We are now able to destinguish not only the standard diagonal line going from bottom left to top right in the cepstrogram of _Knockout_, but also a more vague line going from top left to bottom right. 
+This means that not only is there similarity if you would play this track in two instances at once (pretty obvious), but also if you would play one of the instances in reverse.
 
-Depending on the results of these models I may deduce what is causing them to perform a certain way, and build new models that may perform better.
+We see that this line does not start and end exactly in the corners, which can be explained by the song having an intro that is different from its outro, but still spans quite a lot of the song.
+When listening to the song I heard very similar parts.
+That is why plotted the cepstrogram of the song again. We see that the song is very symmetrical, you would be able to put a vertical line around 80 seconds to divide the cepstrogram in two very identical parts. As expected we see that the first 20 and last 30 seconds do differ from each other explaining the inverse similarity line being in the top left and bottom right corners.
 
-### __Evaluation__ <br/>Here I evaluate the performance of each model and explore the reason of their performance.
+Looking at the cepstrogram made me curious whether I would be able to see this symmetricity from the actual audio file or even find this point. So I downloaded the song and put it in Audacity (audio editing software). First I loaded the song in regular playback then I imported the song again and reversed it.
+The result can be seen in the image below the cepstrogram.
 
-For each model we can assess it's performance by the amount of songs it classified correctly.
-We can use an extensive confusion matrix to compare the amount of correctly classified songs to the amount of incorrect classifications to see which songs are related to each other.
-After all, if the songs for a certain artist that were incorrectly classified almost always were classified with a certain other artist, those artists must be very similar to each other in terms of the features used for the model.
+We see that this song is indeed very repetitive in that it has the same pattern twice, with the first occurence of this pattern being slightly longer than the second occurence.
+This pattern contains the following parts:
 
-Optimally we want to create a model that uses only the features returned by the `get_track_audio_features()` method, without diving into the sounds and tune of a song (the data returned by the `get_track_audio_analysis()` method). I'm going to compare the different models with each other and find which model performed best and why.
-If two artists turn out to be very similar in each model, I may look for the most similar tracks and subjectively compare them by for example listening to them to see whether those tracks are indeed similar to the ear as well.
+1 Some singing without much extras.
+2 Repetition of this singing but now with added drums.
+3 (Short) Buildup.
+4 Drop.
 
-For the future I hope that some of the artists used to build the model will release new songs, thus allowing me to test the model on novel data to see whether the model is indeed as good as it proved to be on the testdata.
+Both occurences of the song contain the same lyrics and melodies thus meaning that this pattern can be repeated forever.
+The possibility of inversing the song comes from parts 1 and 2 being exactly the same apart from some added drums, that just follow the rithm of this part and thus only increases the intesity of the beats.
+
+When two drops then are aligned this song will sound kinda similar to another instance of this song played in reverse. Only the lyrics do sound kinda strange since the voice is reversed as well, resulting in an unpleasant experience to the ear and the reason I have not included a link to the combination of these instances.
+
+Whether this pattern of a song is common use for _Da Tweekaz_ needs to be seen, but at least this is an interesting feature that might be useful for later research.
+
+
+### __Darkest Hour of the Clock__<br/>I further analyse interesting patterens from previous week and bring out another song for this.{data-commentary-width=550}
+```{r Loading Darkest Hour, include=FALSE}
+load('plots/lf_cept.RData')
+load('plots/dh_cept.RData')
+load('plots/dh_ss.RData')
+
+load('plots/fs_cept.RData')
+```
+```{r Plotting Darkest Hour}
+lf_cept
+dh_cept
+#dh_ss
+fs_cept
+```
+
+***
+
+As I mentioned in the summary of this weeks update I saw an interesting feature in the cepstrogram of _Lake of Fire_: There is one hotspot at c04.
+
+When listening to the song at especially this part of the song I found that this part corresponds to a very unique piece of the song, just a wall of noise... I did however recocognise this part as it also occurs in another song of _D-Block & S-te-Fan_: _Darkest Hour of the Clock_.
+In this song the same part occurs around 2 minutes for a longer duration and more intense and shorter around 3 minutes. I thus was interested whether I would be able to see two hotspots at c04 in this song as well.
+
+For comparison I first plotted the cepstrogram of _Lake of Fire_ and we indeed see this very bright spot at 50 seconds into the song at c04.
+If we now look at the c04 row of _Darkest Hour of the Clock_ we again see bright spots. If we look closely we see that these are indeed around the times I expected them to be!
+This thus means that this is quite a unique feature for this artist! However, only in these songs... Because if we take a look at the cepstrogram of _Fallen Souls_ we don't see any bright spots in the c04 row at all.
+
+There might still be a chance that the model I will create in the upcoming weeks will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
