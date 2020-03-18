@@ -342,3 +342,31 @@ save(dh_cept, file='plots/dh_cept.RData')
 save(dh_ss, file='plots/dh_ss.RData')
 ```
 
+```{r Tempograms}
+lf_tidy <- get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l')
+lf_tempogram <- lf_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Lake of Fire') +
+  theme_minimal()
+
+fs_tidy <- get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN')
+fs_tempogram <- fs_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Fallen Souls') +
+  theme_minimal()
+
+ko_tidy <- get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn')
+ko_tempogram <- ko_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Knockout') +
+  theme_minimal()
+```

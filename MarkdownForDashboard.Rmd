@@ -47,6 +47,7 @@ The Update (Week 11)
 
 * This week I have subsetted my data into training and test sets that can be used for K-fold cross validation. I have explained my steps at [The Data] in the last story.  
 * Furthermore I have finally made some classification models on the _track features_ data! The results can be found at [Modeling (Week 11 update)].
+* I also added tempograms to [Exploration of Novel Data] last story.
 
 
 Introduction
@@ -240,6 +241,10 @@ plotly_build(feat_plt)
 ```{r}
 plotly_build(pca_plt)
 ```
+
+### __Further Analysis on the PCA__<br/>I look further into what features the Principal Components represent.
+
+### __Creating the delta and delta delta data__<br/>As more advanced data I use the delta and delta delta timbre features of my corpus.
 
 ### __Data Preparation__ (Subsetting)<br/>Before we can train a classifier we need training- and testingdata. To reduce data loss I use cross validation.
 #### Subsetting the data for the classifier
@@ -497,6 +502,7 @@ As a final test I once again trained the models on the data with 160 epochs and 
 Considering the time it took to train these models on 160 epochs (around 2 minutes) and lower accuracies I conclude that using a deep learning model on the _track features_ data is not feasible.  
 It may be argued that using a SVM isn't feasible too since the accuracy is still very low and you can see that the SVM just predicts the most common labels, with a small bias to which common label is most probable for a certain song.
 
+### __SVM on Principal Components__
 
 ### __Upcoming__<br/>Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
 
@@ -540,11 +546,11 @@ Then I created a _Dynamic Time Warp_ plot between the comparison and one base-li
 
 The plots can be found below:
 
-```{r Load Dynamic Time Warps, include=FALSE, eval=FALSE}
+```{r Load Dynamic Time Warps, include=FALSE}
 load('plots/lf_fs_ld.RData')
 load('plots/lf_ko_ld.RData')
 ```
-```{r Plot Dynamic Time Warps, eval=FALSE}
+```{r Plot Dynamic Time Warps}
 db_st_plt
 dbst_dt_plt
 ```
@@ -671,7 +677,35 @@ This thus means that this is quite a unique feature for this artist! However, on
 There might still be a chance that the model I will create in the upcoming weeks will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
 
 
-Testing the Models on Novel Data
+### __Tempograms of the novel songs__<br/>I have created tempograms of the songs to see whether any destinguishable patterns can be found here.
+
+```{r Load Tempograms, include=FALSE}
+load("plots/lf_tempogram.RData")
+load("plots/fs_tempogram.RData")
+load("plots/ko_tempogram.RData")
+```
+```{r Plot Tempograms}
+lf_tempogram
+fs_tempogram
+ko_tempogram
+```
+
+***
+
+#### The tempograms
+When looking at the tempograms of the songs we see clear similarities between the tempograms of both songs of _D-Block & S-te-Fan_ and clear differences between the songs of _D-Block & S-te-Fan_ and the song of _Da Tweekaz_.
+
+When looking at the songs of _D-Block & S-te-Fan_ we see that it has a few segments in which there is a very clear tempo, while at segments where the tempo is more unclear the pattern between both songs of _D-Block & S-te-Fan_ are similar. Also both songs of _D-Block & S-te-Fan_ have the same dominant tempo over the course of the track.
+
+This in contrast to _Knockout_ which, as discussed earlier, follows a repeating pattern with first a tempo around 210 BPM, which rises to 300 BPM at the choruses. When the tempo is unclear the pattern is also very different of the pattern found in the songs of _D-Block & S-te-Fan_.
+
+
+(Upcoming) Testing the Models on Novel Data
 ===
 
-### Stay tuned for when I try to use my model on the actual novel data!
+#### Stay tuned for when I try to use my model on the actual novel data!
+
+(Upcoming) Final Conclusion
+===
+
+#### I will conclude with what things I learned about this music and give a final conclusion on using the Spotify features of songs for artist classification.
