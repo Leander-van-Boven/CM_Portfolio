@@ -42,12 +42,10 @@ SetEnvVars()
 #save(all_songs, file='data/all_songs.RData')
 ```
 
-The Update (Week 11)
+The Update (Week 12)
 ===
 
-* This week I have subsetted my data into training and test sets that can be used for K-fold cross validation. I have explained my steps at [The Data] in the last story.  
-* Furthermore I have finally made some classification models on the _track features_ data! The results can be found at [Modeling (Week 11 update)].
-* I also added tempograms to [Exploration of Novel Data] last story.
+
 
 
 Introduction
@@ -202,7 +200,41 @@ plt_pca
 
 grid.arrange(feat_plt, pca_plt, nrow=1)
 ```
+```{r}
+all_songs_vari <- varimax(all_songs_pca$x)
+ggplot(all_songs_vari)
+```
+```{r}
+ggplotly(plt_pca)
+```
+```{r}
+ply_pca <- plot_ly() %>% 
+  add_trace(
+    type="scatter3d",
+    x=all_songs_pca$x[,1],
+    y=all_songs_pca$x[,2],
+    z=all_songs_pca$x[,3],
+    color=pam_pca[["clustering"]],
+    text=all_songs$track_name,
+    #hoverinfo='text',
+    hovertemplate=paste('Artist: %{color}', '<br>Track: %{text}</br>'),
+    size=I(50)
+  ) %>% 
+  layout(
+    title="Plot of first 3 principal components",
+    scene = list(
+      xaxis=list(title="PC1"),
+      yaxis=list(title="PC2"),
+      zaxis=list(title="PC3")
+    )
+  )
+ply_pca
+```
 
+```{r, eval=FALSE}
+  plot_ly(x=all_songs_pca$x[,1], y=all_songs_pca$x[,2], z=all_songs_pca$x[,3], 
+        type="scatter3d", color=pam_pca[["clustering"]], size=I(50))
+```
 ***
 
 #### Dimensionality Reduction
@@ -293,7 +325,7 @@ fold_breaks <- cut(1:length(shuffled_indices), breaks=k, labels=FALSE)  # Split 
 fold_indices <- fold_breaks[shuffled_indices]                           # Assign a fold to each index
 ```
 
-Modeling (Week 11 update) {.storyboard}
+Modeling {.storyboard}
 ===
 
 ### __Introduction__
@@ -502,9 +534,14 @@ As a final test I once again trained the models on the data with 160 epochs and 
 Considering the time it took to train these models on 160 epochs (around 2 minutes) and lower accuracies I conclude that using a deep learning model on the _track features_ data is not feasible.  
 It may be argued that using a SVM isn't feasible too since the accuracy is still very low and you can see that the SVM just predicts the most common labels, with a small bias to which common label is most probable for a certain song.
 
+
 ### __SVM on Principal Components__
 
+### __Keras model on Principal Components__
+
+
 ### __Upcoming__<br/>Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
+#### Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
 
 
 Exploration of Novel Data {.storyboard}
@@ -702,10 +739,9 @@ This in contrast to _Knockout_ which, as discussed earlier, follows a repeating 
 
 (Upcoming) Testing the Models on Novel Data
 ===
-
 #### Stay tuned for when I try to use my model on the actual novel data!
+
 
 (Upcoming) Final Conclusion
 ===
-
 #### I will conclude with what things I learned about this music and give a final conclusion on using the Spotify features of songs for artist classification.
