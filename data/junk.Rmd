@@ -370,3 +370,20 @@ ko_tempogram <- ko_tidy %>%
   labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Knockout') +
   theme_minimal()
 ```
+
+```{r Principal Component 2 Analysis}
+low_pc2_track_names <- c('The Source', 'Hardstyle Pirates', 'Forever', 'The F-Track')
+high_pc2_track_names <- c('Empire Of The Sun', 'Delay Distortion', 'Face The Enemy - Album Edit', 'Teqnology')
+
+all_low_pc2_songs <- all_songs[all_songs$track_name %in% low_pc2_track_names,]
+low_pc2_songs <- data.frame(all_low_pc2_songs$artist_name, all_low_pc2_songs$track_name, all_low_pc2_songs$speechiness, all_low_pc2_songs$instrumentalness)
+colnames(low_pc2_songs) <- c('Artist', 'Track', 'Speechiness', 'Instrumentalness')
+
+
+all_high_pc2_songs <- all_songs[all_songs$track_name %in% high_pc2_track_names,]
+high_pc2_songs <- data.frame(all_high_pc2_songs$artist_name, all_high_pc2_songs$track_name, all_high_pc2_songs$speechiness, all_high_pc2_songs$instrumentalness)
+colnames(high_pc2_songs) <- c('Artist', 'Track', 'Speechiness', 'Instrumentalness')
+
+save(low_pc2_songs, file='data/low_pc2_songs.RData')
+save(high_pc2_songs, file='data/high_pc2_songs.RData')
+```

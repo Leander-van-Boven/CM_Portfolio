@@ -44,7 +44,12 @@ SetEnvVars()
 
 The Update (Week 12)
 ===
+For week 12 it the assignment was to include k-fold crossvalidation which I have done previous week at [The Data] under __Data Preparation__ (Subsetting). 
+Also some kind of classification or clustering was to be executed, k-means clustering I have performed in the first or second week in [The Data] under __Data Preparation (week 12 update)__ (Dimensionality Reduction).  
+Classification I have done previous week as well and is included in [Modeling], some confusion matrices can be found there as well.
 
+As for what I have done this week:  
+I have performed further analysis on the principal components (as was requested by many who have reviewed my portfolio so far). This can be found in [The Data] under __Data Preparation (week 12 update)__ (Dimensionality Reduction) as well as under __Further analysis on the Principal Components (week 12 update)__.
 
 
 
@@ -171,70 +176,33 @@ This is a lot of data in which some features may be very similar for all songs. 
 
 To give a good insight in these features and get a quick overview of which of these may be show some clear differences between the artists, I have combined all songs from all artists into one dataset. I have plotted each of them here (I would have made them interactive however due to limitations of the _plotly_ package they are just images. From these plots you can observe that the _Mode_ feature is not useful. Some other features don't seem to show any clear patterns on their own too. That is why I have plotted each feature relative to the other features. If one of these plots already show clusters we probably only need to use these two features to train a classifier with. However I have put these plots in a separate [document](https://github.com/Saltpile123/CM_Portfolio/blob/master/plots/All_features_relative.md) because of the amount (121) and because no plot seems to show any clear clusters.
 
-So although the scatterplots did seem to show some nice patterns, these patterns seem to be very similar among the artists.
+So although the violinplots did seem to show some nice patterns, these patterns seem to be very similar among the artists.
 This thus means we need to perform Principal Component Analysis.
 I will elaborate more on this in the Data Preparation section. If the PCA provides us with good clusters we know that we can quite easily build a classifier, however if the PCA doesn't provide us with any noticable clusters it may be possible that the data still can be clustered, but in higher dimensions. This, however, is quite hard to visualize, thus then I will probably just feed the data to the classifier and hopefully it will be able to draw relations between the features and the artist.
 
 
-### __Data Preparation__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
+### __Data Preparation (week 12 update)__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
 ```{r PCA & Clusters, fig.width=10, fig.align='center'}
-all_songs_pca <- prcomp(all_songs[,1:11])
-plt_pca <- ggplot(all_songs, aes(all_songs_pca$x[,1], all_songs_pca$x[,2], col=all_songs$artist_name)) + 
+load('data/scaled_track_features.RData')
+
+all_songs_pca <- prcomp(scaled_track_features)
+
+pam_feat <- pam(scaled_track_features, 7)
+pam_pca <- pam(all_songs_pca$x, 7)
+
+plt_pca <- ggplot(all_songs, aes(all_songs_pca$x[,1], all_songs_pca$x[,2], col=as.factor(all_songs$artist_name))) + 
+  scale_shape_manual(values=c(seq(1,6), 8)) +
   geom_point() +
   labs(color='Artist', title='Figure 1: PC2 plotted against PC1') +
   xlab('Frist Principal Component') +
   ylab('Second Principal Component')
-
-pam_feat <- pam(all_songs[1:11], 7)
-pam_pca <- pam(all_songs_pca$x, 7)
-
-feat_plt <- fviz_cluster(pam_feat, data=all_songs[1:11], geom='point', main='Figure 2: K-Means on Track Features')
-#plotly_build(feat_plt)
-
-pca_plt <- fviz_cluster(pam_pca, data=all_songs_pca$x, geom='point', main='Figure 3: K-Means on Principal Components')
-#plotly_build(pca_plt)
-
 plt_pca
-#feat_plt
-#pca_plt
 
+feat_plt <- fviz_cluster(pam_feat, data=scaled_track_features, geom='point', main='Figure 2: K-Means on Track Features')
+pca_plt <- fviz_cluster(pam_pca, data=all_songs_pca$x, geom='point', main='Figure 3: K-Means on Principal Components')
 grid.arrange(feat_plt, pca_plt, nrow=1)
 ```
-```{r}
-all_songs_vari <- varimax(all_songs_pca$x)
-ggplot(all_songs_vari)
-```
-```{r}
-ggplotly(plt_pca)
-```
-```{r}
-ply_pca <- plot_ly() %>% 
-  add_trace(
-    type="scatter3d",
-    x=all_songs_pca$x[,1],
-    y=all_songs_pca$x[,2],
-    z=all_songs_pca$x[,3],
-    color=pam_pca[["clustering"]],
-    text=all_songs$track_name,
-    #hoverinfo='text',
-    hovertemplate=paste('Artist: %{color}', '<br>Track: %{text}</br>'),
-    size=I(50)
-  ) %>% 
-  layout(
-    title="Plot of first 3 principal components",
-    scene = list(
-      xaxis=list(title="PC1"),
-      yaxis=list(title="PC2"),
-      zaxis=list(title="PC3")
-    )
-  )
-ply_pca
-```
 
-```{r, eval=FALSE}
-  plot_ly(x=all_songs_pca$x[,1], y=all_songs_pca$x[,2], z=all_songs_pca$x[,3], 
-        type="scatter3d", color=pam_pca[["clustering"]], size=I(50))
-```
 ***
 
 #### Dimensionality Reduction
@@ -248,35 +216,155 @@ As mentioned in the Data Understanding we need to apply Principal Component Anal
 This data may be even better to use than the features on their own since the PCA data will be more dense in information, and will contain only the relevant parts of the features.
 First of all I made a PCA of the data, I have plotted the first two against each other (see _Figure 1_).
 
-As you can see, there is still no clear separation between the artists, if any we see that they all seem to be very close in terms of PC1 and PC2.
-However since the PCA consists, in our case, of 11 principal components, we might not see all differences between the artists. Thus we need a way to see whether __all__ principal components can be used to desinguish the artists. 
+As you can see, the data is now seperated into two columns over the first principal component. Each column seems to have a cluster at the bottom but there is still plenty of spread in each column.  
+Although there are two columns and the data seems to be seperated this way, each artist looks to have around the same amount of songs per column, thus not being very helpful.  
+It however may be the case that another separation can be found in other components, since we have 11 of them. To see wether this is the case, if have plotted the first 3 components with k-means clustering applied in the story _Further analysis on the Principal components_.
 
 #### K-Means Clustering
 We can use clustering for this and k-means clustering in particular. This clustering algorithm first assigns each data point to a random cluster. Then it iteratively calculates the centerpoint of each cluster and assigns each data point to the cluster with the nearest centerpoint, this is done using some distance formula that handles multidimensional data (like Euclidean distance, Manhattan distance).
 To compare the standard features with the principal components I have applied k-means clustering on both the features data and principal components data with 7 clusters (we have 7 artists). 
 
-If the data can be effectively clustered we would see 7 separate circles, and in each cirlce there will be only one type of points.
-However, as you can see in _Figure 2_ and _Figure 3_ (can be found interactive in the next to stories) most data points are all in one big cluster and the circles of all clusters all cross each other.
-We do see that using the Principal Components as data for the clustering algorithm did help to separate one cluster from all others.
-But if we examine this cluster we see that 6 out of the 7 artists have songs in this cluster. 
+If the data can be effectively clustered we would see 7 separate clusters, and in each cluster there will be only one type of points.
+However, as you can see in _Figure 2_ and _Figure 3_ (can be found interactive in the next two stories) most data points are all in one big cluster and the outlines of each cluster all cross each other. To further illustrate this I show below that cluster 1 contains songs of each artist.
+
+We do see that in both plots there are some clear outliers, especially in the principal component plot they are very prominent. I will further analyse this two stories further in _further analysis on the Principal Components.
 
 ```{r Cluster 1}
-unique(all_songs[pam_pca$clustering==1,][,12])
+#unique(all_songs[pam_pca$clustering==1,]$artist_name)
+songs_in_cluster1 <- data.frame(unique(all_songs[pam_pca$clustering==1,]$artist_name))
+colnames(songs_in_cluster1) <- c('Artist')
+songs_in_cluster1$Occurences <- sapply(songs_in_cluster1$Artist, FUN=function(x){nrow(all_songs[pam_pca$clustering==1 & all_songs$artist_name==x,])})
+songs_in_cluster1 %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c('striped'))
 ```
 
-### __Figure 2__ (interactive)
+
+### __Figure 3__ (interactive)
 ```{r}
 plotly_build(feat_plt)
 ```
 
-### __Figure 3__ (interactive)
+
+### __Figure 4__ (interactive)
 ```{r}
 plotly_build(pca_plt)
 ```
 
-### __Further Analysis on the PCA__<br/>I look further into what features the Principal Components represent.
+### __Further analysis on the Principal Components (week 12 update)__<br/>I further analyze the principal component via a 3d plot on the first 3 components with k-means clustering applied.{data-commentary-width=750}
+```{r}
+#all_songs_vari <- varimax(all_songs_pca$x)
+#ggplot(all_songs_vari, aes)
+```
+```{r}
+ply_pca <- plot_ly() %>% 
+  add_trace(
+    type="scatter3d",
+    mode="markers",
+    name=all_songs$artist_name,
+    x=all_songs_pca$x[,1],
+    y=all_songs_pca$x[,2],
+    z=all_songs_pca$x[,3],
+    #color=pam_pca[["clustering"]],
+    color=as.factor(all_songs$artist_name),
+    colors="Set1",
+    text=paste('Artist:', all_songs$artist_name, '<br>Track:', all_songs$track_name, '</br>', '<br>Cluster:', pam_pca[["clustering"]], '</br>'),
+    #text=as.factor(all_songs$track_name),
+    hoverinfo='text',
+    #hovertemplate=paste('Artist: %{color}', '<br>Track: %{text}</br>', '<br>Cluster: %{pam_pca[["clustering]]}</br>'),
+    size=I(50),
+    legendgroup='group1'
+  ) %>% 
+  add_trace(
+    type="mesh3d",
+    opacity=0.1,
+    name=paste("Cluster", pam_pca[["clustering"]]),
+    x=all_songs_pca$x[,1],
+    y=all_songs_pca$x[,2],
+    z=all_songs_pca$x[,3],
+    color=as.factor(pam_pca[["clustering"]]),
+    colors="Set1",
+    hoverinfo='skip',
+    showlegend=TRUE,
+    legendgroup='group2'
+    #text=pam_pca[["clustering"]]
+    #hovertemplate='Cluster: %{text}'
+  ) %>% 
+  layout(
+    title="Figure 4: Plot of first 3 principal components",
+    scene = list(
+      xaxis=list(
+        title='PC1',
+        spikecolor='red',
+        spikethickness=1,
+        spikesides=FALSE
+      ),
+      yaxis=list(
+        title='PC2',
+        spikecolor='green',
+        spikethickness=1,
+        spikesides=FALSE
+      ),
+      zaxis=list(
+        title='PC3',
+        spikecolor='blue',
+        spikethickness=1,
+        spikesides=FALSE
+      )
+    )
+  )
+ply_pca
+```
+
+***
+
+#### Principal Components
+The Principal Components are very abstract, it is therefore very hard to explain what part of the data contributed to any good or bad results when using the principal components for, for example, classification.
+
+Principal components are designed to represent as much variation in the data as possible thus it will not represent each feature anymore; each component will probably represent a comination of them, with the first components probably being a combination of features with high variation.  
+To give more insight in what kind of music is represented by each value of the first 3 principal components I have made a 3 dimensional plot in which I have plotted the songs colored by their artist on the first 3 components in the x, y and z axis respectively.  
+In this plot I have included the clusters as well, but it can be noticed straight away that these clusters are all over the place, however the clusters seem to be the most separated on the third principal component (z-axis).  
+To get a better view of the songs I therefore suggest you to disable the clusters by either clicking once on the cluster part of the legend or double clicking on the artist part of the legend.
+
+After creating this plot I have used it to pick songs on the limits of each component to listen to and compare.
+Using this comparison I gained insight in what type of song is represented by each principal component.
+
+#### Principal Component 1
+
+* Low values: Better flowing music, easier to listen to.
+* High values: Very spiky aggresive music.
+
+The first principal component seems to characterize the flow of a song. Higher values seem to correspond with very 'spiky' songs; hard bass and no real flow.  
+I had expected that the _danceability_ feature would be very low for these songs, however a few samples did not show that either high or low values of the first principal component corresponded with any high or low values of _danceability_. 
+
+#### Principal Component 2
+
+* Low values: low Instrumentalness, high Speechiness
+* High values: high Instrumentalness, low Speechiness
+
+The second principal component was quite noticable straight away, songs with low values had lots of speech in them, songs with high values had no or barely noticable voice in them.  
+To confirm my observation I have picked 4 songs per column; 2 with low values for the second principal component and 2 songs with high values for the second principal component. Below I made two simple tables in which you can clearly see the correspondence between the value of the second principal component and the speechiness and instrumentalness of the song.
+
+```{r}
+load('data/low_pc2_songs.RData')
+load('data/high_pc2_songs.RData')
+low_pc2_songs %>% 
+  kable(caption='Songs with low values on the second Principal Component') %>% 
+  kable_styling(bootstrap_options = c('striped', 'condensed'))
+high_pc2_songs %>% 
+  kable(caption='Songs with high values on the second Principal Component') %>% 
+  kable_styling(bootstrap_options = c('striped', 'condensed'))
+```
+
+#### Principal Component 3
+* Low values: Very melodic, lots of synth
+* High values: Very heavy bass,
+
+As for the third principal component, clear differences between songs were already harder to notice. One big difference could however be noticed; Songs with low values for the third principal component had way more synth and thus melodic feel to them than songs with higher values for the third principal component. Some songs with high values for the third component didn't even have some kind of chorus (which contains in most hardstyle songs most of the synth of the song) and were just 2 to 3 minutes of bass kick with some distorted noise.
+
 
 ### __Creating the delta and delta delta data__<br/>As more advanced data I use the delta and delta delta timbre features of my corpus.
+#### Next week I will create delta and delta deltas of the timbre and or tempo to use for my models.
 
 ### __Data Preparation__ (Subsetting)<br/>Before we can train a classifier we need training- and testingdata. To reduce data loss I use cross validation.
 #### Subsetting the data for the classifier
@@ -299,7 +387,7 @@ To make sure each feature has the same impact on the model each feature must be 
 
 ```{r Preparing Data, echo=TRUE}
 scale_01 <- function(x){(x-min(x))/(max(x)-min(x))}   # Define scale function
-train_data <- apply(all_songs[,1:9], 2, scale_01)     # Scale track features data
+train_data <- apply(all_songs[,1:11], 2, scale_01)     # Scale track features data
 ```
 
 Then I converted the artist names to a factor vector for the support vector machine and I created a one-hot-encoding matrix of the artist names for the Keras model.
@@ -536,9 +624,10 @@ It may be argued that using a SVM isn't feasible too since the accuracy is still
 
 
 ### __SVM on Principal Components__
+#### Here I will create a support vector machine on the principal components.
 
 ### __Keras model on Principal Components__
-
+#### Here I will create a deep learning keras model on the principal components.
 
 ### __Upcoming__<br/>Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
 #### Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
