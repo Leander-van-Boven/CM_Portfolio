@@ -1151,8 +1151,7 @@ The fact that the song from _Da Tweekaz_ is classified as being from _Headhunter
 Final Conclusion
 ===
 #### Final Conclusion on the results of the models on the novel data
-Overall I think it is very hard to tell which model actually performed best. Especially since we could see the activations of the Keras model, and not of the Support Vector Machine.
-
+Overall I think it is very hard to tell which model actually performed best. Especially since we could see the activations of the Keras model, and not of the Support Vector Machine.  
 So although the misclassifications of the Keras model could be explained better, the very low activations for the true label stops me from saying that the Keras model performed best.
 
 To add to this I must say that training a Support Vector Machine, or any other standard classification model is a lot faster and easier than a Deep Learning Model (especially on my poor laptop I had to use the last couple of days).
