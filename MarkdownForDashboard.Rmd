@@ -1,16 +1,14 @@
 ---
-title: "Computational Musicology Portfolio Plan"
+title: "Computational Musicology Portfolio"
 author: "Leander van Boven - 12997080"
-#break: true
-#runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     theme: simplex
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
- encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+   encoding=encoding,
+   output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 ---
 
 ```{r Setup, include=FALSE}
@@ -39,18 +37,9 @@ load("spotify_env_vars.RData")
 load("data/all_songs.RData")
 SetEnvVars()
 
+scale_01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #save(all_songs, file='data/all_songs.RData')
 ```
-
-The Update (Week 12)
-===
-For week 12 it the assignment was to include k-fold crossvalidation which I have done previous week at [The Data] under __Data Preparation__ (Subsetting). 
-Also some kind of classification or clustering was to be executed, k-means clustering I have performed in the first or second week in [The Data] under __Data Preparation (week 12 update)__ (Dimensionality Reduction).  
-Classification I have done previous week as well and is included in [Modeling], some confusion matrices can be found there as well.
-
-As for what I have done this week:  
-I have performed further analysis on the principal components (as was requested by many who have reviewed my portfolio so far). This can be found in [The Data] under __Data Preparation (week 12 update)__ (Dimensionality Reduction) as well as under __Further analysis on the Principal Components (week 12 update)__.
-
 
 
 Introduction
@@ -60,11 +49,16 @@ Column
 ---
 
 ### The Idea
-For my project I'm going to do research in the genre of hardstyle music.
+In this portfolio I am going to perform research in the genre of hardstyle music.
 A lot of people would say that the music within this genre is all alike. However there is a common assumption that each artist distinguishes him- (or her)self with his (or her) unique style and sound. This is most noticable in the tones used in the so called _drop_ and as bass-kick.
 
 I'm going to research whether this assumption can be proved with a (computer)model. In particular a classification model that can classify a song with an artist (assumed that this song is of one of the artists used for training the model). Because if such model can be used we can assume that indeed there is something in the songs that are unique for each artist.
 However if such model is not possible, I'm going to research why this is the case, or what is necessary to create such model.
+
+N.B.
+
+* It may be possible, due to the amount of tabs I have in my portfolio or the window you view my portfolio in being small, that the tab bar becomes multiline. In this case flexdashboard hides the top lines of each storyboard, which in some cases only hides part of the story headers, but sometimes can also hide important parts like, for example, the conclusion. In this case I would suggest you find a way to increase the width of the window you view this portfolio in.
+* Furthermore, I have tried to make everything as clear as possible in what I have done without echoing each code chunk. Since I have saved most of the data as .RData file, echoing the code doesn't even make sense. However I have saved all code in another markdown file which can be found [here](https://github.com/Saltpile123/CM_Portfolio/blob/master/data/under_the_hood.Rmd), may you be interesting in looking under the hood of this portfolio.
 
 Column
 ---
@@ -77,13 +71,13 @@ This should be enough data to build a decent classification model.
 
 Artist             | Songs on Spotify
 :-----------------:|:----------------:
-Noisecontrollers   | 199
-Headhunterz        | 146
-Brennan Heart      | 100
-Showtek            | 88
-Da Tweekaz         | 62
-Sub Zero Project   | 56
-D-Block & S-te-Fan | 47
+[Noisecontrollers](https://open.spotify.com/artist/6qJ61DomA73g7jQEKESw9Z?si=7RNaKTn-TlyWurbRZeFgOw) | 198
+[Headhunterz](https://open.spotify.com/artist/6C0KWmCdqrLU2LzzWBPbOy?si=UscMpSq8SCayJ7t5-h9dAg) | 146
+[Brennan Heart](https://open.spotify.com/artist/5QySqc6yAFDx9m7fedFZmC?si=ARtnM0H8RlWjFCGiVRhcZw) | 99
+[Showtek](https://open.spotify.com/artist/3gk0OYeLFWYupGFRHqLSR7?si=YLe5NIvlQhC3EspjWanh1A) | 88
+[Da Tweekaz](https://open.spotify.com/artist/6UOk7DmvqlzWmo6gjhZvn6?si=pOFDdFMMS02va47WsVQuiA) | 61
+[Sub Zero Project](https://open.spotify.com/artist/4f0OXMMSxr0r8Ztx6CdpAl?si=rZiB80v5TPyP_iNgfzIyHw) | 54
+[D-Block & S-te-Fan](https://open.spotify.com/artist/6L7a6wPGpvLtTwOsMLnF1z?si=1duSNWSISZGrNoPgEWkFbw) | 46
 
 The Data {.storyboard}
 ===
@@ -181,10 +175,9 @@ This thus means we need to perform Principal Component Analysis.
 I will elaborate more on this in the Data Preparation section. If the PCA provides us with good clusters we know that we can quite easily build a classifier, however if the PCA doesn't provide us with any noticable clusters it may be possible that the data still can be clustered, but in higher dimensions. This, however, is quite hard to visualize, thus then I will probably just feed the data to the classifier and hopefully it will be able to draw relations between the features and the artist.
 
 
-### __Data Preparation (week 12 update)__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
+### __Data Preparation__ (Dimensionality Reduction)<br/>Not all data is useful for a classifier, therefore we need to reduce the dimensionality of our dataset. {data-commentary-width=750}
 ```{r PCA & Clusters, fig.width=10, fig.align='center'}
-load('data/scaled_track_features.RData')
-
+scaled_track_features <- apply(all_songs[,1:11], 2, scale_01)
 all_songs_pca <- prcomp(scaled_track_features)
 
 pam_feat <- pam(scaled_track_features, 7)
@@ -214,9 +207,10 @@ Of course we still need to include the _Artist_ in our reduced dataset since we 
 #### Principal Component Analysis
 As mentioned in the Data Understanding we need to apply Principal Component Analysis on the data since the features on their own or relative to one other feature didn't show any good clusters. Principal component analysis means that we reduce the data to a new dataset where each column is an information rich column that captures as much possible variation from the initial data.
 This data may be even better to use than the features on their own since the PCA data will be more dense in information, and will contain only the relevant parts of the features.
-First of all I made a PCA of the data, I have plotted the first two against each other (see _Figure 1_).
+Since the principal components will take the differences between values we need to make sure to scale the data first. This is because for example the tempo will otherwise be the leading variable in the principal components because due to its big values (relative to the other features) it also encapsulates the most variance.
+After the scaling I made a PCA of the data, I have plotted the first two against each other (see _Figure 1_).
 
-As you can see, the data is now seperated into two columns over the first principal component. Each column seems to have a cluster at the bottom but there is still plenty of spread in each column.  
+As you can see, the data is now seperated into two columns over the first two principal components.
 Although there are two columns and the data seems to be seperated this way, each artist looks to have around the same amount of songs per column, thus not being very helpful.  
 It however may be the case that another separation can be found in other components, since we have 11 of them. To see wether this is the case, if have plotted the first 3 components with k-means clustering applied in the story _Further analysis on the Principal components_.
 
@@ -224,10 +218,10 @@ It however may be the case that another separation can be found in other compone
 We can use clustering for this and k-means clustering in particular. This clustering algorithm first assigns each data point to a random cluster. Then it iteratively calculates the centerpoint of each cluster and assigns each data point to the cluster with the nearest centerpoint, this is done using some distance formula that handles multidimensional data (like Euclidean distance, Manhattan distance).
 To compare the standard features with the principal components I have applied k-means clustering on both the features data and principal components data with 7 clusters (we have 7 artists). 
 
-If the data can be effectively clustered we would see 7 separate clusters, and in each cluster there will be only one type of points.
-However, as you can see in _Figure 2_ and _Figure 3_ (can be found interactive in the next two stories) most data points are all in one big cluster and the outlines of each cluster all cross each other. To further illustrate this I show below that cluster 1 contains songs of each artist.
+If the data can be effectively clustered we would see 7 separate clusters, and in each cluster there will be only songs of one artist.  
+However, as you can see in _Figure 2_ and _Figure 3_ (can be found interactive in the next two stories) most data points are all in one big cluster and the outlines of each cluster all cross each other. Even the principal components, which spread the data over two columns on the first two components has songs in each column in the same cluster. To further illustrate this I show below that cluster 1 contains songs of each artist.
 
-We do see that in both plots there are some clear outliers, especially in the principal component plot they are very prominent. I will further analyse this two stories further in _further analysis on the Principal Components.
+We do see that the standard track features have some outliers in general, while the principal components only have small outliers in each column. It may however be possible that there is more spread in higher dimensions of the principal components, which I explored in the _Further analysis on the Principal Components_ section.
 
 ```{r Cluster 1}
 #unique(all_songs[pam_pca$clustering==1,]$artist_name)
@@ -240,23 +234,19 @@ songs_in_cluster1 %>%
 ```
 
 
-### __Figure 3__ (interactive)
+### __Figure 2__ (interactive)
 ```{r}
 plotly_build(feat_plt)
 ```
 
 
-### __Figure 4__ (interactive)
+### __Figure 3__ (interactive)
 ```{r}
 plotly_build(pca_plt)
 ```
 
-### __Further analysis on the Principal Components (week 12 update)__<br/>I further analyze the principal component via a 3d plot on the first 3 components with k-means clustering applied.{data-commentary-width=750}
-```{r}
-#all_songs_vari <- varimax(all_songs_pca$x)
-#ggplot(all_songs_vari, aes)
-```
-```{r}
+### __Further analysis on the Principal Components__<br/>I further analyze the principal component via a 3d plot on the first 3 components.{data-commentary-width=750}
+```{r 3D PCA Plot}
 ply_pca <- plot_ly() %>% 
   add_trace(
     type="scatter3d",
@@ -345,7 +335,7 @@ I had expected that the _danceability_ feature would be very low for these songs
 The second principal component was quite noticable straight away, songs with low values had lots of speech in them, songs with high values had no or barely noticable voice in them.  
 To confirm my observation I have picked 4 songs per column; 2 with low values for the second principal component and 2 songs with high values for the second principal component. Below I made two simple tables in which you can clearly see the correspondence between the value of the second principal component and the speechiness and instrumentalness of the song.
 
-```{r}
+```{r PC2 Analysis}
 load('data/low_pc2_songs.RData')
 load('data/high_pc2_songs.RData')
 low_pc2_songs %>% 
@@ -363,8 +353,12 @@ high_pc2_songs %>%
 As for the third principal component, clear differences between songs were already harder to notice. One big difference could however be noticed; Songs with low values for the third principal component had way more synth and thus melodic feel to them than songs with higher values for the third principal component. Some songs with high values for the third component didn't even have some kind of chorus (which contains in most hardstyle songs most of the synth of the song) and were just 2 to 3 minutes of bass kick with some distorted noise.
 
 
-### __Creating the delta and delta delta data__<br/>As more advanced data I use the delta and delta delta timbre features of my corpus.
-#### Next week I will create delta and delta deltas of the timbre and or tempo to use for my models.
+### __Adding more data__</br>I add more data to my corpus to create better models.
+To further enrich my data I have added the audio analysis of each song to my corpus.  
+Then I have used the methods provided to add the delta of the chroma features and delta of the timbre features to my data.
+
+After testing I found that adding more data to the dataset gained better results (see [Modeling] -> _Changing the Approach and Model architecture_). Therefore I also extracted the delta of the delta timbre to use as well.
+
 
 ### __Data Preparation__ (Subsetting)<br/>Before we can train a classifier we need training- and testingdata. To reduce data loss I use cross validation.
 #### Subsetting the data for the classifier
@@ -379,6 +373,17 @@ However, since taking only 20% of the data as validation data, this means we get
 For this reason I'm going to perform k-fold cross validation on the data with 5 folds. This means that I'm going to shuffle the data and then divide the data into 5 parts (thus each part is 20% of the data). After that I will repeatedly take one part as testset and the other parts as trainingset.
 This way all data will be once testdata and 4 times trainingsdata, resulting in a model that has seen more data and thus is less overfitted on that data, giving a better estimate of the real performance of the model.
 
+To do this I first shuffle the indices of the data.
+Then I create a vector with equal amount of items per fold. Lastly I assign to each index a fold.
+
+```{r K-Fold CV, echo=TRUE}
+set.seed(123)   # Set a seed to make reproducible results
+k <- 5          # Amount of folds
+shuffled_indices <- sample(1:nrow(all_songs))                          # Shuffle the indices
+fold_breaks <- cut(1:length(shuffled_indices), breaks=k, labels=FALSE)  # Split the data into k equal parts
+fold_indices <- fold_breaks[shuffled_indices]                           # Assign a fold to each index
+```
+
 #### Preparing the _Track Features_ Data
 The first data I am going to use to train a classifier are the _track features_.
 What data is included in this can be found in [The Data]. 
@@ -387,42 +392,55 @@ To make sure each feature has the same impact on the model each feature must be 
 
 ```{r Preparing Data, echo=TRUE}
 scale_01 <- function(x){(x-min(x))/(max(x)-min(x))}   # Define scale function
-train_data <- apply(all_songs[,1:11], 2, scale_01)     # Scale track features data
+train_features <- apply(all_songs[,1:11], 2, scale_01)     # Scale track features data
 ```
 
 Then I converted the artist names to a factor vector for the support vector machine and I created a one-hot-encoding matrix of the artist names for the Keras model.
 A one-hot-encoding matrix is just a row of zeros with one 1 at the position of the true class.
 Thus the one-hot-encoding vector for a song made by Noisecontrollers will contain only zeros and 1 one at the position of Noisecontrollers in the one-hot-encoding matrix like this:
 
-```{r}
+```{r Label Preparation}
 train_factors <- as.factor(all_songs$artist_name)     # Create factor vector for class labels
 train_targets <- to_categorical(as.integer(as.factor(all_songs$artist_name)))   # Create one-hot-encoding matrix for class labels
 train_targets <- train_targets[,2:8]                  # Get only the relevant columns
 print(train_targets[1,])
 ```
 
-Now we have prepared the data value wise we can now divide the data into folds.
-To do this I first shuffle the indices of the data.
-Then I create a vector with equal amount of items per fold. Lastly I assign to each index a fold.
 
-```{r, echo=TRUE}
-set.seed(123)   # Set a seed to make reproducible results
-k <- 5          # Amount of folds
-shuffled_indices <- sample(1:nrow(train_data))                          # Shuffle the indices
-fold_breaks <- cut(1:length(shuffled_indices), breaks=k, labels=FALSE)  # Split the data into k equal parts
-fold_indices <- fold_breaks[shuffled_indices]                           # Assign a fold to each index
+#### Preparing the _Principal Components_ Data
+
+```{r Prepare PCA Data}
+train_pca <- all_songs_pca$x
 ```
+
+Preparing the Pincipal Components is very easy since one of the return values of the _prcomp_ function returns a matrix with for each component for each song a value. We can then just use this matrix as input features for the Support Vector Machine and Keras Deep Learning Model.  
+Since the labels did not change (each song is still produced by its original artist) we can reuse this data; the one-hot-encoding matrix as target data for the Keras model and the factorised labels as target data for the SVM.  
+We also don't need to scale the data since the data was already scaled before it was put into the principal component analysis, and the analysis itself scales the data too.
+
+
+#### Preparing the _Delta Chroma, _Delta Timbre_ and _Delta Delta Timbre_ Data
+
+```{r Load Delta Data}
+load('data/all_songs_delta_timbre.RData')
+load('data/all_songs_delta_delta_timbre.RData')
+```
+```{r Create Delta Timbre Training Data, echo=TRUE}
+train_timbre <- apply(all_songs_delta_timbre[,5:28], 2, scale_01)
+```
+
+In order to prepare the delta data I only needed to take the relevant data columns of the initial dataset with all audio analysis and rescale the data to be within the [0,1] range, since some deltas are negative.
+
 
 Modeling {.storyboard}
 ===
 
-### __Introduction__
+### __Introduction__<br/>I introduce you to the model types I am going to use.
 #### Introduction
 As mentioned before I'm going to train multiple models, trained on different subsets of the initial dataset:
 
 * A model trained on all features mentioned in [The Data] (Data Understanding).
-* (optionally) A model trained on (a subset of) the Principal Components.
-* A model trained on deltas of timbre/chroma and/or delta delta of timbre/chroma.
+* A model trained on (a subset of) the Principal Components.
+* A model trained on deltas of timbre and chroma and delta of timbre deltas.
 
 Multiclass classification models can be made in different ways.
 Because I am very intrigued by deep learning, I had the intention from the start to make a deep learning model to use for classification.
@@ -436,66 +454,79 @@ Especially since R provides very easy tools to create one.
 
 That is why I decided to not only create a Keras model but also a Support Vector Machine as comparison model to see whether deep learning is better practice for this kind of classification, or if it is way easier (with maybe better results) to just create a support vector machine model.
 
-
-### __SVM on Track Features__<br/>I create a support vector machine model on the Track Features data and assess its performance. {data-commentary-width=500}
-```{r SVM Classifier (K-Fold CV), results='asis'}
-svm_accuracies <- c()
-for (i in 1:k){
-  #print(paste('Fold:', i))
-  #cat(paste("Fold :", i))
-  cat("__Fold #", i, ":__  ")
-  # Get all data rows of this fold
-  inds <- which(fold_indices == i, arr.ind=TRUE)
-  
-  # Take these data rows as validation data
-  val_x <- train_data[inds,]
-  val_y <- train_factors[inds]
-  
-  # Take the other data rows as training data
-  train_x <- train_data[-inds,]
-  train_y <- train_factors[-inds]
-  
-  # Create a support vector machine model and assess its performance
-  svm_model <- svm(x=train_x, y=train_y)
-  predicted <- predict(svm_model, val_x)
-  confusion <- confusionMatrix(predicted, val_y)
-  acc <- confusion$overall["Accuracy"]
-  svm_accuracies <- c(svm_accuracies, acc)
-  print(acc)
-  
-  cf <- knitr::kable(table(predicted, val_y)) %>% 
-    kable_styling("striped", full_width = T)
-  print(add_header_above(cf, c("Predicted", "Actual"=7)))
-  #print(knitr::kable(table(predicted, val_y)))
-  cat("\n  ...  \n")
-  cat("\n  ")
-  #print(formattable(confusion$table))
+### __Introduction to the Support Vector Machine__<br/>I explain how I create and run the Support Vector Machine Models.
+```{r RUN_SVM Declaration, echo=TRUE}
+run_svm <- function(k, x, y, ind){
+  # Process each fold
+  svm_accuracies <- c()
+  for (i in 1:k){
+    cat("__Fold #", i, ":__  ")
+    
+    # Get all data rows of this fold
+    inds <- which(ind == i, arr.ind=TRUE)
+    
+    # Take these data rows as validation data
+    val_x <- x[inds,]
+    val_y <- y[inds]
+    
+    # Take the other data rows as training data
+    train_x <- x[-inds,]
+    train_y <- y[-inds]
+    
+    # Create a support vector machine model and assess its performance
+    svm_model <- svm(x=train_x, y=train_y)
+    predicted <- predict(svm_model, val_x)
+    confusion <- confusionMatrix(predicted, val_y)
+    acc <- confusion$overall["Accuracy"]
+    svm_accuracies <- c(svm_accuracies, acc)
+    print(acc)
+    
+    cf <- knitr::kable(table(predicted, val_y)) %>% 
+      kable_styling("striped", full_width = T)
+    print(add_header_above(cf, c("Predicted", "Actual"=7)))
+    cat("\n  ...  \n")
+    cat("\n  ")
+  }
+  cat("__Mean accuracy:__ ", mean(svm_accuracies))
 }
-cat("__Mean accuracy:__ ", mean(svm_accuracies))
-#knitr::kable(tables[1], "html")
 ```
 
 ***
 
-#### The Support Vector Machine Model
-To compare the results of the deep learning model I have created a support vector machine on the same data.
-This data includes the track features scaled to be in the range [0,1] and seperated into 5 parts.  
-For each fold I created a new SVM model and used 4 parts of the data as trainingdata and the other part as validation data.
+To make the creation and execution of a Support Vector Machine model easier, I have made a function that I can call with different training and validation sets.  
+As can be seen this function has multiple arguments:
 
-#### The Results
-To assess the performance of each model I have created a confusion matrix of the results. I have put the accuracy above each confusion matrix. Each row gives the predicted label while each column stands for the actual label. This way we can see which artists were correctly classified most times and if an artist is classified incorrectly which other artist was choosen instead.
-If a model has very high accuracy we would see only zeros with on diagonal line of numbers going from top left to bottom right.
+* _k_: The amount of folds.
+* _x_: The training data.
+* _y_: The validation data.
+* _ind_: A vector that assigns each data-row to a fold.
 
-If we look at the accuracies we see that each model roughly has the same accuracy, small differences between the accuracies are probably explained by each fold having a different distribution of songs per artist. The mean accuracy of all models is 36%, which is, considering the type of data, not that bad.
-
-When looking at the confusion matrices we see that most of the inaccuracy of the models are explained by all of them classifying most songs as being from _Noisecontrollers_. Considering this artist having most songs in my corpus begs me to question whether this model actually 'learned' patterns in the data or just found out that guessing _Noisecontrollers_ most times was just the right answer. Especially if we look deeper into the confusion matrices we see that the second most predicted label is _Headhunterz_ who have, after _Noisecontrollers_, the most songs in my corpus.
+Since creating a SVM is very easy, I only need to extract the relevant data for each fold and create a svm-model on the training data of that fold.  
+I can then use the validation data of the fold to create a confusion matrix of the model that will tell me which label was predicted most for each true label, getting more information than when I would only use the accuracy of the model.
 
 
-### __Keras model on Track Features__<br/>Here I make a Keras deep learning model on the Track Features data.{data-commentary-width=600}
-```{r Build Model Function, echo=TRUE}
-build_model <- function() {
+### __Introduction to the Keras Model__<br/>I explain the architecture of deep learning model I used and how I used it.
+Before you can pass data into a deep learning model, you first need to create one.  
+To do this I have defined a function that creates a sequential deep learning model. Sequential means that the each output has its own input and that the output is never used as input (as is the case in recurrent networks).  
+Each layer is a dense layer which means that each node of each layer is connected to each node in the previous and next layer.
+
+#### The Build Model Function
+Since the original track features data has 11 columns we need to have 11 inputs in our network, however since I have multiple data sets I want to use, I made the input size variable.  
+Then I created two hidden layers with 25 and 15 nodes respectively. Each node uses _relu_ as its activation function since this is the most basic activation function. 
+
+```{r}
+knitr::include_graphics('plots/relu.png')
+```
+
+The _relu_ activation function outputs, as can be seen in the picture, zero for all negative input and is linear for all positive input. _Relu_ is generally seen as the go to activation function for simple neural networks. I may try different activation functions is the future.
+
+The output layer consists of 7 nodes since we have 7 classes.  
+I have used the _softmax_ activation for this output layer since we want for each class a probability. The _softmax_ activation function makes sure this is the case by converting the outputs to all sum to one.
+
+```{r Build_Model Function, echo=TRUE}
+build_model <- function(input_size) {
   model <- keras_model_sequential() %>%
-    layer_dense(units=25, activation='relu', input_shape = 9) %>% # Fully connected input layer with 25 nodes
+    layer_dense(units=25, activation='relu', input_shape = input_size) %>% # Fully connected input layer with 25 nodes
     layer_dense(units=15, activation='relu') %>%  # Second fully connected hidden layer with 15 nodes
     layer_dense(units=7, activation='softmax')    # Output layer with 7 nodes (7 classes)
   
@@ -507,112 +538,118 @@ build_model <- function() {
 }
 ```
 
-```{r Keras Model (K-Fold CV) with Tensorboard, eval=FALSE}
-num_epochs <- 500
-accuracy_histories <- c()
-all_scores <- c()
-for (i in 1:k) {
-  cat("Processing fold #", i, "\n")
-  # Prepare the validation data: data from partition # k
-  val_indices <- which(fold_indices == i, arr.ind = TRUE) 
+Then I created a similar function to the _run_svm_ function described earlier to run the model in a k-fold corss validation manner on the provided data.  
+I have actually created two functions for this since I am using [Tensorboard](https://www.tensorflow.org/tensorboard) to better inspect the performance of the deep learning models.  
+However Tensorboard is designed to visualize the results of the model in real time and is therefore hosted on the localhost and can thus sadly not be included in this dashboard.  
+Instead I have downloaded the graphs of the accuracy on the training and validation data and show these instead with 0.9 smoothing applied to show a better trend of the accuracy over the epochs.  
+The arguments of these functions are very much self-explanatory and I will thus not go further in on this.
+
+```{r RUN_KERAS Declaration, echo=TRUE}
+run_keras <- function(k, x, y, ind, num_epochs, b_size, FUN = build_model){
+  all_scores <- c()
   
-  # Get the training and validation data
-  val_data <- train_data[val_indices,]
-  val_targets <- train_targets[val_indices,]
-  partial_train_data <- train_data[-val_indices,]
-  partial_train_targets <- train_targets[-val_indices,]
+  for (i in 1:k) {
+    cat("Processing fold #", i, "\n")
+    
+    # Prepare the validation data: data from partition #i
+    inds <- which(ind == i, arr.ind = TRUE) 
+    
+    # Get the training and validation data
+    val_x <- x[inds,]
+    val_y <- y[inds,]
+    train_x <- x[-inds,]
+    train_y <- y[-inds,]
+    
+    # Build the Keras model
+    model <- FUN(ncol(train_x))
+    model %>% fit(train_x, train_y,
+                  epochs=num_epochs, batch_size=b_size, verbose=0)
+    
+    # Evaluate the model on the validation data
+    results <- model %>% evaluate(val_x, val_y, verbose = 0)
+    print(paste("Loss:", results$loss, "Accuracy:", results$accuracy))
+    all_scores <- c(all_scores, results$accuracy)
+  }
   
-  # Build the Keras model
-  model <- build_model()
-  
-  #model %>% fit(partial_train_data, partial_train_targets,
-                #epochs=num_epochs, batch_size=1, verbose=0)
-  # Evaluate the model on the validation data
-  #results <- model %>% evaluate(val_data, val_targets, verbose = 0)
-  #print(paste("Loss:", results$loss, "Accuracy:", results$accuracy))
-  #all_scores <- c(all_scores, results$accuracy)
-  
-  # Train the model (in silent mode, verbose=0)
-  history <- model %>% fit(partial_train_data, partial_train_targets,
-                epochs = num_epochs, batch_size = 1, verbose = 0,
-                callbacks = callback_tensorboard(paste("logs/run_", i, sep="")),
-                validation_data = list(val_data, val_targets))
-  accuracy_histories <- rbind(accuracy_histories, history$metrics$val_accuracy)
-} 
-#tensorboard("logs")
-#all_scores
-average_accuracy_history <- data.frame(
-  epoch=seq(1:ncol(accuracy_histories)),
-  validation_accuracy=apply(accuracy_histories, 2, mean)
-)
-```
-```{r, eval=FALSE}
-all_accuracies <- data.frame(accuracy_histories)
-all_accuracies <- data.frame(t(all_accuracies))
-colnames(all_accuracies) <- c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5")
-all_accuracies$x <- seq(1:nrow(all_accuracies))
-all_accuracies_melted <- melt(all_accuracies, measure.vars=c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5"), id="x")
-ggplot(all_accuracies_melted, aes(x=x, y=value, col=variable)) +
-  geom_line()
-```
-```{r, eval=FALSE}
-num_epochs <- 160
-accuracy_histories <- c()
-all_scores <- c()
-for (i in 1:k) {
-  cat("Processing fold #", i, "\n")
-  # Prepare the validation data: data from partition # k
-  val_indices <- which(fold_indices == i, arr.ind = TRUE) 
-  
-  # Get the training and validation data
-  val_data <- train_data[val_indices,]
-  val_targets <- train_targets[val_indices,]
-  partial_train_data <- train_data[-val_indices,]
-  partial_train_targets <- train_targets[-val_indices,]
-  
-  # Build the Keras model
-  model <- build_model()
-  
-  model %>% fit(partial_train_data, partial_train_targets,
-                epochs=num_epochs, batch_size=1, verbose=0)
-  # Evaluate the model on the validation data
-  results <- model %>% evaluate(val_data, val_targets, verbose = 0)
-  print(paste("Loss:", results$loss, "Accuracy:", results$accuracy))
-  all_scores <- c(all_scores, results$accuracy)
+  print(mean(all_scores))
 }
-print(mean(all_scores))
+```
+
+```{r RUN_KERAS_TENSORBOARD Declaration, echo=TRUE}
+run_keras_tensorboard <- function(k, x, y, ind, num_epochs, b_size, tensorboard_path, FUN = build_model){
+  accuracy_histories <- c()
+  
+  for (i in 1:k) {
+    cat("Processing fold #", i, "\n")
+    
+    # Prepare the validation data: data from partition #i
+    inds <- which(ind == i, arr.ind = TRUE) 
+    
+    # Get the training and validation data
+    val_x <- x[inds,]
+    val_y <- y[inds,]
+    train_x <- x[-inds,]
+    train_y <- y[-inds,]
+    
+    # Build the Keras model
+    model <- FUN(ncol(train_x))
+    
+    # Train the model (in silent mode, verbose=0)
+    history <- model %>% fit(train_x, train_y,
+                  epochs = num_epochs, batch_size = b_size, verbose = 0,
+                  callbacks = callback_tensorboard(paste(tensorboard_path, "/run_", i, sep="")),
+                  validation_data = list(val_x, val_y))
+    
+    accuracy_histories <- rbind(accuracy_histories, history$metrics$val_accuracy)
+  } 
+  
+  # Run Tensorboard and create average accuracy dataframe
+  tensorboard(tensorboard_path)
+  average_accuracy_history <- data.frame(
+    epoch=seq(1:ncol(accuracy_histories)),
+    validation_accuracy=apply(accuracy_histories, 2, mean)
+  )
+  return(average_accuracy_history)
+}
 ```
 
 
-__Accuracy of the training data on each fold for 500 epochs with 0.9 smoothing__
-![](plots/epoch_accuracy_train.svg)
-
-
-__Accuracy of the validation data on each fold for 500 epochs with 0.9 smoothing__
-![](plots/epoch_accuracy_validation.svg)
+### __SVM on Track Features__<br/>I create a SVM model on the Track Features data and assess its performance. {data-commentary-width=500}
+```{r SVM Classifier (K-Fold CV) on Track Features, results='asis'}
+run_svm(5, train_features, train_factors, fold_indices)
+```
 
 ***
 
-#### The Keras Deep Learning Model
-Not only did I make a SVM model on the track features data, I also created a deep learning model using Keras for R.
-After some tweaking I resulted in a model which didn't take too long to train and still had similar performance to more extensive models.  
-This model has 9 inputs because we have 9 features and has 2 hidden layers with 25 and 15 nodes respectively. Each node in the hidden layers uses the _relu_ activation function.
+#### Results of a SVM on the Track Features Data
+To assess the performance of each model I have created a confusion matrix of the results. I have put the accuracy above each confusion matrix. Each row gives the predicted label while each column stands for the actual label. This way we can see which artists were correctly classified most times and if an artist is classified incorrectly which other artist was choosen instead.
+If a model has very high accuracy we would see only zeros with on diagonal line of numbers going from top left to bottom right.
 
-```{r}
-knitr::include_graphics('plots/relu.png')
+If we look at the accuracies we see that each model roughly has the same accuracy, small differences between the accuracies are probably explained by each fold having a different distribution of songs per artist. The mean accuracy of all models is 36%, which is, considering the type of data, not that bad.
+
+When looking at the confusion matrices we see that most of the inaccuracy of the models are explained by all of them classifying most songs as being from _Noisecontrollers_. Considering this artist having most songs in my corpus begs me to question whether this model actually 'learned' patterns in the data or just found out that guessing _Noisecontrollers_ most times was just the right answer. Especially if we look deeper into the confusion matrices we see that the second most predicted label is _Headhunterz_ who have, after _Noisecontrollers_, the most songs in my corpus.
+
+
+### __Keras model on Track Features__<br/>Here I make a Keras deep learning model on the Track Features data.{data-commentary-width=600}
+```{r Keras Model (K-Fold CV) with Tensorboard on Track Features, eval=FALSE}
+run_keras_tensorboard(5, train_features, train_targets, fold_indices, 500, 1, "logs_features", FUN=build_model)
+```
+```{r Keras Model (K-Fold CV) on Track Features, eval=FALSE}
+run_keras(5, train_features, train_targets, fold_indices, 160, 1, FUN=build_model)
 ```
 
-The _relu_ activation function outputs, as can be seen in the picture, zero for all negative input and is linear for all positive input. _Relu_ is generally seen as the go to activation function for simple neural networks. I may try different activation functions is the future.
+__Accuracy of the training data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/keras_features/epoch_accuracy_train.svg)
 
-The output layer consists of 7 nodes since we have 7 classes.  
-I have used the _softmax_ activation for this output layer since we want for each class a probability. The _softmax_ activation function makes sure this is the case by converting the outputs to all sum to one.  
-I have included the 
 
-#### The Results
-Again I use K-fold cross validation to train 5 different models on 4 parts of the data as training data and the other part as validation data.  
-During the training I kept track of the accuracies and loss values of the model on the training and validation data on each epoch. Because I kept track of these values I used more epoch than were probably needed to see what a better epoch amount would be.  
-To visualize these values I used [Tensorboard](https://www.tensorflow.org/tensorboard), however since Tensorboard can use the data in realtime it is hosted from localhost and can therefore sadly not be included in this dashboard.  
-Instead I have downloaded the graphs of the accuracy on the training and validation data with 0.9 smoothing applied to show a better trend of the accuracy over the epochs.
+__Accuracy of the validation data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/keras_features/epoch_accuracy_validation.svg)
+
+***
+
+#### Results of a Keras Model on the Track Features Data
+Again I used K-fold cross validation to train 5 different models on 4 parts of the data as training data and the other part as validation data.  
+During the training I kept track of the accuracies and loss values of the model on the training and validation data on each epoch. Because I kept track of these values I used more epochs than were probably needed to see what the best epoch amount would be.  
 
 As we can see the accuracy of the models on the trainingdata reached a peak around 160 epoch with a mean accuracy around 43%.  
 When looking at the accuracy of the models on the validation data some kind of peak can be distinguished here as well, hopefully indicating that the peak in the accuracies on the trainingsdata did not mean that the models were overfitted in the trainingdata. We do see however that the accuracies of the models on the validation data don't show much of a trend and vary much more between the models than the training accuracies do.  
@@ -620,17 +657,208 @@ I also wanted to create a confusion matrix of the outputs of the deep learning m
 As a final test I once again trained the models on the data with 160 epochs and got a final accuracy around 30%.
 
 Considering the time it took to train these models on 160 epochs (around 2 minutes) and lower accuracies I conclude that using a deep learning model on the _track features_ data is not feasible.  
-It may be argued that using a SVM isn't feasible too since the accuracy is still very low and you can see that the SVM just predicts the most common labels, with a small bias to which common label is most probable for a certain song.
+It may be argued that using a SVM isn't feasible too since the accuracy is still very low and you can see that the SVM just predicts the most common labels, to which common label is most probable for a certain song.
 
 
-### __SVM on Principal Components__
-#### Here I will create a support vector machine on the principal components.
+### __SVM on Principal Components__<br/>I create a SVM model on the Principal Components data and assess its performance. {data-commentary-width=500}
+```{r SVM Classifier (K-Fold CV) on PCA, results='asis'}
+run_svm(5, train_pca, train_factors, fold_indices)
+```
 
-### __Keras model on Principal Components__
-#### Here I will create a deep learning keras model on the principal components.
+***
 
-### __Upcoming__<br/>Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
-#### Here will create models in the Deltas or Delta Deltas of the Timbre or Chroma features.
+#### Results of a SVM on the Principal Components Data
+I again have applied the same technique as for the track features data, however this time I have used the principal components data as training data.  
+Sadly to no avail, the accuracy is about the same, and again we see that the most common artists are preferred way over the other artists.  
+If the Keras model again provides the same results, something is probably going wrong somewhere and thus needs to be fixed.
+
+
+### __Keras model on Principal Components__<br/>Here I make a Keras deep learning model on the Principal Components data.{data-commentary-width=600}
+```{r Keras Model (K-Fold CV) with Tensorboard on Principal Components, eval=FALSE}
+run_keras_tensorboard(5, train_pca, train_targets, fold_indices, 500, 1, "logs_pca", FUN=build_model)
+```
+```{r Keras Model (K-Fold CV) on Principal Components, eval=FALSE}
+run_keras(5, train_pca, train_targets, fold_indices, 200, 1, FUN=build_model)
+```
+
+__Accuracy of the training data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/keras_pca/epoch_accuracy_train.svg)
+
+
+__Accuracy of the validation data on each fold for 500 epochs with 0.9 smoothing__
+![](plots/keras_pca/epoch_accuracy_validation.svg)
+
+***
+
+#### Results of a Keras model on the Principal Components Data
+Here too I have applied the same steps I performed when applying deep learning on the track features data.  
+And again too we see about the same results, which I was afraid of; The model got quite good results on the training data, however the validation accuracy is very bad. Each fold produces very dissimilar results albeit in roughly the same (very low) accuracy range.
+
+What can be noticed is that the accuracy of the training data does not fluctuate as much as it did in the track features models. What is causing this is unclear to me, since I have used the same architecture, activation functions and optimizer for the models.
+
+What is clear however is that something needs to change, since the data and architectures used now are not sufficient for creating good performing models.
+
+
+### __Changing the Approach and Model architecture__<br/>Since the current models are performing badly, I change a few thing.{data-commentary-width=750}
+
+```{r Load All Oversampled Data sets}
+load('data/oversampled/oversampled_all_songs.RData')
+
+load('data/oversampled/oversampled_factors.RData')
+load('data/oversampled/oversampled_targets.RData')
+
+load('data/oversampled/oversampled_features.RData')
+load('data/oversampled/oversampled_delta_timbre.RData')
+load('data/oversampled/oversampled_delta_delta_timbre.RData')
+
+load('data/oversampled/oversampled_full_data.RData')
+```
+
+```{r Pie Charts}
+all_songs_table <- data.frame(table(all_songs$artist_name))
+colnames(all_songs_table) <- c('Artist', 'Amount of Songs') 
+
+oversampled_table <- data.frame(table(oversampled_all_songs$artist_name))
+colnames(oversampled_table) <- c('Artist', 'Amount of Songs')
+
+plot_ly() %>% 
+  add_pie(all_songs_table, 
+          title='Contribution of each artist to the original corpus',
+          name='All Songs',
+          labels=all_songs_table$Artist, 
+          values=all_songs_table$`Amount of Songs`,
+          domain = list(row = 0, column = 0),
+          textinfo='percent', #textinfo='label+percent',
+          hovertemplate=paste('Artist: %{label}', 
+                              '<br>Amount of Tracks: %{value}</br>', 
+                              'Percentage: %{percent}', 
+                              '<extra></extra>')
+          ) %>% 
+  add_pie(oversampled_table,
+          title='Contribution of each artist to the sampled corpus',
+          name='Oversampled Songs',
+          labels=oversampled_table$Artist,
+          values=oversampled_table$`Amount of Songs`,
+          domain = list(row = 1, column = 0),
+          textinfo='percent', #textinfo='label+percent',
+          hovertemplate=paste('Artist: %{label}', 
+                              '<br>Amount of Tracks: %{value}</br>', 
+                              'Percentage: %{percent}', 
+                              '<extra></extra>')          
+          ) %>% 
+  layout(#title = 'Contribution of each artist to the corpus',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         #showlegend=F,
+         grid=list(rows=2, columns=1))
+```
+
+***
+
+#### Some insights
+When doing some additional testing I found that adding more data gained better results. E.g. when using only the delta timbre and chroma I already gained better results than just the track features. When combining the delta timbre and chroma with the track features accuracy increased even further.  
+Because I had also extracted the delta of the delta timbre I have added this data my final data set as well.
+
+The final dataset of all combined features now contained 47 columns:
+
+* All Track Features
+* Chroma Deltas
+* Timbre Deltas (c1 ... c12)
+* Delta Timbre Deltas (d1 ... d12)
+
+The name of each datacolumn of the final corpus can be seen below.
+
+```{r Print Colnames(Oversampled_full_data)}
+colnames(oversampled_full_data)
+```
+
+#### Changing the model architecture
+Since the data now contains more columns, the _build_model_ function as described earlier did not work as well anymore. Although the input size was a variable passed as argument, the architecture of the network was based on the original dataset size: 11 columns. Since the data now contains 47 columns, the first layers (with fewer nodes) could be bottlenecking the performance of the model.
+
+Therefore I have slightly adjusted the original _build_model_ function to create _build_model2_. As can be seen not only did the size of the hidden layers increase, their activation is also changed. I did this after some feedback that suggested that an activation function which often just outputs 0 might not yield optimal results. A few quick tests further confirmed this.  
+I also tried the _adam_ optimizer, which further increased the accuracy, so I sticked with that too.
+
+````{r Build_Model2 Function, echo=TRUE}
+build_model2 <- function(input_size) {
+  model <- keras_model_sequential() %>%
+    layer_dense(units=50, activation='elu', input_shape = input_size) %>% # Fully connected input layer with 50 nodes
+    layer_dense(units=50, activation='elu') %>%  # Second fully connected hidden layer with 50 nodes
+    layer_dense(units=7, activation='softmax')   # Output layer with 7 nodes (7 classes)
+  
+  model %>% compile(
+    optimizer = 'adam',
+    loss = 'categorical_crossentropy',
+    metrics = c('accuracy')
+  )
+}
+```
+
+#### Sampling the data
+As mentioned before I noticed that previous models just guessed the most common label when in doubt. This pattern was found in both the SVM and Keras model on both the track features as well as the principal components data.  
+I therefore decided to give each artist equal amount of songs in the corpus.
+
+The amount of songs for each artist and its contribution to the total corpus can be seen in the first pie chart. We indeed see that both _Noisecontrollers_ and _Headhunterz_ are overrepresented in the corpus.  
+
+The minimum of songs for one artist was 46 (for _D-Block & S-te-Fan_), however subsampling all other artists to have only 45 songs in the corpus did not yield me very good results.  
+Instead I have used the mean amount of songs of each artist in the corpus, which is around 100. I therefore have subsampled all artists which have more than 100 songs in the corpus and oversampled all artists which have less than 100 songs in the corpus.  
+As can be seen in the bottom pie chart, each artist now has an equal amount of songs in the corpus.
+
+Since the amount of songs has now changed I had to re-assign each song to a fold, which I have done below.  
+The _oversampled_all_songs_ dataset contains all features of the over- and subsampled songs, as described above.
+
+```{r Create Folds for Oversampled Data, echo=TRUE}
+set.seed(123)
+k <- 5
+oversampled_shuffled <- sample(1:nrow(oversampled_all_songs))                      # Shuffle the indices
+oversampled_breaks <- cut(1:length(oversampled_shuffled), breaks=k, labels=FALSE)  # Split the data into k equal parts
+oversampled_indices <- oversampled_breaks[oversampled_shuffled]                    # Assign a fold to each index
+```
+
+
+### __SVM on All Features__<br/>I create new Support Vector Machine models on the combined features dataset.{data-commentary-width=500}
+```{r SVM Classifier (K-Fold CV) on All Features, results='asis'}
+run_svm(5, oversampled_full_data, oversampled_factors, oversampled_indices)
+```
+
+***
+
+#### Finally Good Results
+As can be seen from the accuracies per fold and the mean accuracy over all folds, I was finally able to create a models that performed reasonably accurate.  
+Especially the confusion matrices now follow the pattern you would like to see in a confusion matrix; A diagonal line of high numbers going from top left to bottom right.
+
+When evaluating these confusion matrices we see that in each fold about 1 or 2 artists where quite hard to classify, despite each artist being represented quite even in each fold. Interestingly, each fold different artists where badly classified, with _Showtek_ being the artist with which the SVM models had most often hard times.  
+Due to each fold having 2 artists that were quite hard to indentify the overall accuracy of each fold quickly decreases, explaining the mean accuracy of 63%.
+
+I am still very much pleased by the amount of increase in accuracy, especially since this accuracy isn't explained by probabilities anymore.
+
+
+### __Keras Model on All Features__<br/>With the good results of the SVM on the combined features, lets see how the Keras model performs.{data-commentary-width=600}
+```{r Keras Model (K-Fold CV) with Tensorboard on All Features, eval=FALSE}
+avg <- run_keras_tensorboard(5, oversampled_full_data, oversampled_targets, oversampled_indices, 750, 15, "logs_all_features2", FUN=build_model2)
+head(sort(avg$validation_accuracy, T))
+```
+
+__Accuracy of the training data on each fold for 750 epochs with 0.9 smoothing__
+![](plots/keras_all_features/epoch_accuracy_train.svg)
+
+
+__Accuracy of the validation data on each fold for 750 epochs with 0.9 smoothing__
+![](plots/keras_all_features/epoch_accuracy_validation.svg)
+
+__Loss of the validation data on each fold for 750 epochs with 0.9 smoothing__
+![](plots/keras_all_features/epoch_loss_validation.svg)
+
+***
+
+#### Even better results
+With a mean validation accuracy steadily above 70% after 500 epochs, I think I can claim that I have created a deep learning model that was finally able to outperform the support vector machine model equivalent trained on the same data.  
+
+It, however, took quite some testing and adjustments of especially the batch size, to get these results.  
+The batch size determines how many samples are passed through the network before it is updated. Lower batch size values mean more updates, which often means that the accuracy of the network increases more per epoch. The downside is that each epoch takes more time -updating a neural network uses [gradient descent](https://en.wikipedia.org/wiki/Gradient_descent) which takes a lot of time, even with optimizers- and causes the accuracy of the network to spike more. Higher batch size values result in less updates per epoch and thus less time spend per epoch, but causing less increase in accuracy. You therefore need to perform more epochs.
+A batch size value of 15 turned out to be quite good for me. As can be seen in the graphs I performed 750 epochs to see a good trend in accuracy. Due to have a batch size value of 15 we can also see that the graph behind the smoothed graph is alot smoother than the accuracy graphs of previous Keras models.
+
+What is interesting and both worrying is that the accuracy of the model on the training data after 600 epochs reaches 100%. This means that the model is overfitted on the training data (thus is very good in only classifying only that part of the data). Overfitting most often results in the validation accuracy dropping from some point and the validation loss increasing heavily.  
+This first characteristic does not seem to occur, since the accuracy of the models on the validation accuracy keeps increasing, even after 600 epochs. We do however see that the validation loss even surpasses the starting loss after around 450 epochs. So despite the validation accuracy increase even after 600 epochs I have decided to take 300 epochs as number of epochs for the final model.
 
 
 Exploration of Novel Data {.storyboard}
@@ -800,7 +1028,7 @@ For comparison I first plotted the cepstrogram of _Lake of Fire_ and we indeed s
 If we now look at the c04 row of _Darkest Hour of the Clock_ we again see bright spots. If we look closely we see that these are indeed around the times I expected them to be!
 This thus means that this is quite a unique feature for this artist! However, only in these songs... Because if we take a look at the cepstrogram of _Fallen Souls_ we don't see any bright spots in the c04 row at all.
 
-There might still be a chance that the model I will create in the upcoming weeks will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
+There might still be a chance that the models I will create will notice these features and at least will be able to classify a song with this features as being produced by _D-Block & S-te-Fan_.
 
 
 ### __Tempograms of the novel songs__<br/>I have created tempograms of the songs to see whether any destinguishable patterns can be found here.
@@ -823,14 +1051,121 @@ When looking at the tempograms of the songs we see clear similarities between th
 
 When looking at the songs of _D-Block & S-te-Fan_ we see that it has a few segments in which there is a very clear tempo, while at segments where the tempo is more unclear the pattern between both songs of _D-Block & S-te-Fan_ are similar. Also both songs of _D-Block & S-te-Fan_ have the same dominant tempo over the course of the track.
 
-This in contrast to _Knockout_ which, as discussed earlier, follows a repeating pattern with first a tempo around 210 BPM, which rises to 300 BPM at the choruses. When the tempo is unclear the pattern is also very different of the pattern found in the songs of _D-Block & S-te-Fan_.
+This in contrast to _Knockout_ which, as discussed earlier, follows a repeating pattern with first a tempo around 210 BPM, which rises to 300 BPM at the choruses. When the tempo is less clear the pattern of possible tempos is also very different to the pattern found in the songs of _D-Block & S-te-Fan_.
 
 
-(Upcoming) Testing the Models on Novel Data
+Testing on Novel Data {.storyboard}
 ===
-#### Stay tuned for when I try to use my model on the actual novel data!
+
+### __Preparing to Test on Novel Data__
+#### Creating the Final Models
+Before we can classify we first need to create the final models, since during the k-fold cross validation I created a new model and discarded that model each fold.
+
+The final Support Vector Machine model is created using sampled data together with the artists converted to a factor vector.
+````{r Creating the Final SVM, echo=TRUE}
+final_svm <- svm(x=oversampled_full_data, y=oversampled_factors)
+```
+
+The final Keras Model is made using the same training data, however I use the one-hot-encoding matrix as target data as described in the [Modeling] section. I use 300 epochs and a batch size value of 15 as argued in the last story of the [Modeling] section.
+```{r Creating the Final Keras Model, echo=TRUE, eval=FALSE}
+final_keras_model <- build_model2(ncol(oversampled_full_data))
+final_keras_model %>% 
+  fit(oversampled_full_data, oversampled_targets,
+      epochs=300, batch_size=15, verbose=0)
+```
 
 
-(Upcoming) Final Conclusion
+#### Preparing some novel songs
+I have taken the 3 novel songs that have been in the spotlight throughout the [Exploration of Novel Data] section as novel songs for the final test.  
+Since I only took the relavant data of each novel song for each story in the [Exploration of Novel Data] section, I first need to create the features for the novel songs that can be interpreted by the models.  
+This means that I have added the audio analysis to the original track features and extracted the delta timbre and chroma together with the delta of the delta timbre.  
+
+Then I have normalised the data features to be in the [0,1] range. 
+However when doing this I have used the maximum and minimum values of the sampled data set to normalise the novel songs with respect to the training data.
+
+```{r}
+load('data/final_novel_songs.Rdata')
+final_novel_songs_scaled <- final_novel_songs
+
+for (i in 1:ncol(final_novel_songs_scaled)){
+  r <- data.frame(final_novel_songs_scaled[,i])
+  colnames(r) <- colnames(oversampled_all_songs[,i+4])
+  reference <- r %>% 
+    bind_rows(oversampled_all_songs[,i+4])
+  final_novel_songs_scaled[,i] <- scale_01(reference)[1:3,1]
+}
+```
+
+
+### __Predicting the Artist of the Novel Songs__{data-commentary-width=600}
+```{r}
+final_factors <- oversampled_factors[c(101:102, 201)]
+final_targets <- oversampled_targets[c(101:102, 201),]
+```
+
+```{r Final SVM Prediction, echo=TRUE}
+final_svm_prediction <- predict(final_svm, final_novel_songs_scaled)
+final_svm_cm <- confusionMatrix(final_svm_prediction, final_factors)
+```
+```{r Print the final svm confusion matrix, output='asis'}
+knitr::kable(table(final_svm_prediction, final_factors)) %>% 
+  kable_styling("striped", full_width = T) %>% 
+  add_header_above(c("Predicted", "Actual"=7))
+```
+
+```{r Final Keras Prediction, echo=TRUE, eval=FALSE}
+final_keras_predictions <- data.frame(
+  final_keras_model %>% 
+    predict(as.matrix(final_novel_songs_scaled))) %>%
+  round(digits=5)
+colnames(final_keras_predictions) <- unique(oversampled_all_songs$artist_name)
+
+final_keras_confusion <- data.frame(Actual = final_factors) %>% 
+  cbind(final_keras_predictions)
+```
+```{r, output='asis'}
+load('data/final_keras_confusion.RData')
+knitr::kable(final_keras_confusion) %>% 
+  kable_styling("striped", full_width= T)
+```
+
+***
+
+#### The Final Test
+Finally we can test the novel songs on the final models. 
+
+#### The Support Vector Machine Results
+As we can sadly see, the Support Vector Machine was not able to correctly classify the artist of the 3 novel songs I gave it. Both songs from _D-Block & S-te-Fan_ were classified as being produced by _Brennan Heart_ and _Sub Zero Project_ respectively, while the one novel song from _Da Tweekaz_ was also classified as being produced by _Sub Zero Project_.
+
+It is interesting that as song by _D-Block & S-te-Fan_ is classified as being from _Brennan Heart_ since most songs by _Brennan Heart_ contain a lot of singing, this is actually a bit less in most of the songs of _D-Block & S-te-Fan_, however the two novel songs did contain quite some singing and high tones as described in [Exploration of Novel Data]. The fact that the other song from _D-Block & S-te-Fan_ was classified as being produced by _Sub Zero Project_ is also quite interesting since both novel songs from _D-Block & S-te-Fan_ are produced at the same time as when they had a collaboration with _Sub Zero Project_ and produced a few songs together. The type of this songs is quite similar as the type of songs they produced together.
+
+I do find _Da Tweekaz_ and _Sub Zero Project_ very dissimilar. Especially with this song from _Da Tweekaz_ that is quite heavily in the more general dance genre, while _Sub Zero Project_ does make more hardcore / heavy-bass / less dancy songs. I therefore fail to see any reasons why this songs is classified wrong.
+
+#### The Keras Model Results
+Since the Keras model outputs the activations of each output node, I thought it would be more interesting to display these instead of taking the argmax of these outputs.  
+As can be seen is that both songs from _D-Block & S-te-Fan_ are classified as being from _Sub Zero Project_, again I think the same explanation can be applied as I gave above, and therefore I do not think it is that much of a misclassification. However we do see that the activation for the true label is quite low, especially for the second song of _D-Block & S-te-Fan_, which has only 1% chance of being from _D-Block & S-te-Fan_. I will explain this further in the [Final Conclusion].
+
+The fact that the song from _Da Tweekaz_ is classified as being from _Headhunterz_ is also not a very big misclassification, although both artists do make very unqiue songs. Also the activation for the true label again is very low: 2% chance that the song from _Da Tweekaz_ is actually made by _Da Tweekaz_.
+
+
+Final Conclusion
 ===
-#### I will conclude with what things I learned about this music and give a final conclusion on using the Spotify features of songs for artist classification.
+#### Final Conclusion on the results of the models on the novel data
+Overall I think it is very hard to tell which model actually performed best. Especially since we could see the activations of the Keras model, and not of the Support Vector Machine.
+
+So although the misclassifications of the Keras model could be explained better, the very low activations for the true label stops me from saying that the Keras model performed best.
+
+To add to this I must say that training a Support Vector Machine, or any other standard classification model is a lot faster and easier than a Deep Learning Model (especially on my poor laptop I had to use the last couple of days).
+
+#### Further Thoughts
+Although the use of the Spotify API is nice for getting a lot of data about a lot of songs. Further data/features can be easily extracted too, however I find that this data is more suitable for common data analytics tools and less for deep learning. In particular since the introduction of recurrent networks. 
+
+One particular type of recurrent networks called Long Short Term Memory networks may be better suited for the type of classification I do. Because as I mentioned at the start each artist has its own destinctive sound, which comes through the most in the chorus. We therefore need the data for each time moment in the song, something which is not directly included in the current features I used. If I had more time, I therefore would've looked into using the beats and segments data from the audio analysis data of each track.  
+However this would've meant so much more data that my poor laptop would've died a long time ago. Furthermore, this would mean that we go very deep into the numbers part of the music information retrievel and leave the more meaningful part of the musicology behind, which is far beyond the scope of this course, but very much an interesting subject for future projects for sure!
+
+#### Final Word
+At last I want to dedicate this part to take some breath after this (probably quite extensive) portfolio. I very much enjoyed working on this, and therefore had to split my time very carefully to not spend all of it on this portfolio. It left me without much spare time, however I have no regrets spending the time on this.  
+
+Working on this portfolio has given more proficiency in R and some new knowledge about the Flexdashboard and Plotly packages, which I might use in future project. Using the visualizations also increased my understanding in the musicology subjects discussed in class.
+
+For this, the provided sample code and the very entertaining classes I want to thank my teacher of this course.

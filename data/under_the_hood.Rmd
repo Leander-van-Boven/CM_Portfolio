@@ -1,0 +1,698 @@
+---
+title: "Junk Book"
+output: md_document
+---
+```{r, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+!!! DISCLAIMER !!!
+Not all code here was actually executed for the final product, but did do its part by providing good insights.
+Also, not all code is in the same order as in the final product.
+
+```{r Scatterplots, eval=FALSE}
+dance <- ggplot(all_songs, aes(x=num, y=danceability, fill=artist_name, col=artist_name)) + 
+  #geom_point() +
+  geom_violin() +
+  labs(fill='Artist', color='Artist', title='Scatterplot of Danceability') +
+  xlab('Track Num') +
+  ylab('Danceability') +
+  theme(legend.position='left')
+energy <- ggplot(all_songs, aes(x=num, y=energy, fill=artist_name, col=artist_name)) + 
+  #geom_point() + 
+  geom_violin() +
+  labs(color='Artist', title='Scatterplot of Energy') +
+  xlab('Track Num') +
+  ylab('Energy') +
+  theme(legend.position='none')
+key <- ggplot(all_songs, aes(x=key, fill=artist_name)) + geom_histogram(bins=12) + 
+  labs(fill='Artist', title='Histograms of Key') +
+  xlab('Key') +
+  ylab('Count') +
+  facet_grid(~ artist_name) + 
+  theme(strip.text=element_text()) +
+  theme(legend.position='none')
+loud <- ggplot(all_songs, aes(x=num, y=loudness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Loudness') +
+  xlab('Track Num') +
+  ylab('Loudness') +
+  theme(legend.position='none')
+mode <- ggplot(all_songs, aes(x=mode, fill=artist_name)) + geom_histogram(bins=2) + 
+  labs(fill='Artist', title='Histogram of Mode') +
+  xlab('Mode') +
+  ylab('Count') +
+  facet_grid( ~ artist_name) +
+  scale_x_continuous(breaks=c(0,1)) +
+  theme(strip.text=element_text()) +
+  theme(legend.position='none')
+speech <- ggplot(all_songs, aes(x=num, y=speechiness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Speechiness') +
+  xlab('Track Num') +
+  ylab('Speechiness') +
+  theme(legend.position='none')
+acoust <- ggplot(all_songs, aes(x=num, y=acousticness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Acousticness') +
+  xlab('Track Num') +
+  ylab('Acousticness') +
+  theme(legend.position='none')
+inst <- ggplot(all_songs, aes(x=num, y=instrumentalness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Instrumentalness') +
+  xlab('Track Num') +
+  ylab('Instrumentalness') +
+  theme(legend.position='none')
+live <- ggplot(all_songs, aes(x=num, y=liveness, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Liveness') +
+  xlab('Track Num') +
+  ylab('Liveness') +
+  theme(legend.position='none')
+valence <- ggplot(all_songs, aes(x=num, y=valence, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Valence') +
+  xlab('Track Num') +
+  ylab('Valence') +
+  theme(legend.position='none')
+tempo <- ggplot(all_songs, aes(x=num, y=tempo, col=artist_name)) + geom_point() + 
+  labs(color='Artist', title='Scatterplot of Tempo') +
+  xlab('Track Num') +
+  ylab('Tempo') +
+  theme(legend.position='right')
+
+#dance
+#energy
+#key
+#loud
+#mode
+#speech
+#acoust
+#inst
+#live
+#valence
+#tempo
+```
+
+```{r Chromagrams, eval=FALSE}
+#load('data/novel_samples.RData')
+
+lake_of_fire <- 
+    get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l') %>% 
+    select(segments) %>% unnest(segments) %>% 
+    select(start, duration, pitches)
+fallen_souls <- 
+  get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN') %>% 
+  select(segments) %>% unnest(segments) %>% 
+  select(start, duration, pitches)
+
+db_st_plt <- compmus_long_distance(
+    lake_of_fire %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
+    fallen_souls %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
+    feature = pitches,
+    method = 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    geom_tile() +
+    scale_fill_continuous(type = 'viridis', guide = 'none') +
+    labs(x = 'Lake Of Fire (D-Block & S-te-Fan)', y = 'Fallen Souls (D-Block & S-te-Fan)') +
+    theme_minimal()
+
+knockout <- 
+  get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn') %>% 
+  select(segments) %>% unnest(segments) %>% 
+  select(start, duration, pitches)
+
+dbst_dt_plt <- compmus_long_distance(
+    lake_of_fire %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
+    knockout %>% mutate(pitches = map(pitches, compmus_normalise, 'chebyshev')),
+    feature = pitches,
+    method = 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    geom_tile() +
+    scale_fill_continuous(type = 'viridis', guide = 'none') +
+    labs(x = 'Lake Of Fire (D-Block & S-te-Fan)', y = 'Knockout (Da Tweekaz)') +
+    theme_minimal()
+
+db_st_plt
+dbst_dt_plt
+save(db_st_plt, file='plots/lf_fs_ld.RData')
+save(dbst_dt_plt, file='plots/lf_ko_ld.RData')
+#ggplotly(dbst_dt_plt)
+```
+
+```{r Align, eval=FALSE}
+lake_of_fire_align <- 
+    get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l') %>%
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'rms', norm = 'euclidean'))
+fallen_souls_align <- 
+    get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN') %>%
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'rms', norm = 'euclidean'))
+knockout_align <- 
+    get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn') %>%
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'rms', norm = 'euclidean'))
+
+darkest_hour_align <- 
+    get_tidy_audio_analysis('5DWoPJxISs9VMRCJBzujB6') %>%
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'rms', norm = 'euclidean'))
+```
+
+```{r Cepstrograms}
+# We can use `compmus_gather_timbre` much like `compmus_gather_chroma` last week to yield a cepstrogram. Try different levels of structure -- Spotify's estimates of beats, bars, or sections -- to see which level is the most meaningful.
+
+lf_cept <- lake_of_fire_align %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    ggtitle('Cepstrogram Lake of Fire') +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
+    theme_classic()
+fs_cept <- fallen_souls_align %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    ggtitle('Cepstrogram Fallen Souls') +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
+    theme_classic()
+ko_cept <- knockout_align %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    ggtitle('Cepstrogram Knockout') +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(option = 'A', limits=c(0, 0.8)) +
+    theme_classic()
+
+save(lf_cept, file='plots/lf_cept.RData')
+save(fs_cept, file='plots/fs_cept.RData')
+save(ko_cept, file='plots/ko_cept.RData')
+```
+
+```{r Self Similarity Matrices}
+#- `compmus_long_distance` to compare to series of audio features against each other using common distance metrics, including:
+#    - `manhattan`
+#    - `aitchison`
+#    - `euclidean`
+#    - `cosine`
+#    - `angular
+
+lf_ss <- lake_of_fire_align %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    ggtitle('Self Similarity Lake of Fire') +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
+fs_ss <- fallen_souls_align %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    ggtitle('Self Similarity Fallen Souls') +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')    
+ko_ss <- knockout_align %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    ggtitle('Self Similarity Knockout') +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
+
+save(lf_ss, file='plots/lf_ss.RData')
+save(fs_ss, file='plots/fs_ss.RData')
+save(ko_ss, file='plots/ko_ss.RData')
+```
+
+```{r Darkest Hour}
+dh_cept <- darkest_hour_align %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    ggtitle('Cepstrogram Darkest Hour') +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(limits=c(0, 0.8) , option = 'A') +
+    theme_classic()
+    
+dh_ss <- darkest_hour_align %>% 
+    compmus_self_similarity(timbre, 'euclidean') %>% 
+    ggplot(
+        aes(
+            x = xstart + xduration / 2, 
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) + 
+    ggtitle('Self Similarity Darkest Hour') +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'A', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
+
+save(dh_cept, file='plots/dh_cept.RData')
+save(dh_ss, file='plots/dh_ss.RData')
+```
+
+```{r Tempograms}
+lf_tidy <- get_tidy_audio_analysis('0ri3xd7X6jvJQTz9T6IE7l')
+lf_tempogram <- lf_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Lake of Fire') +
+  theme_minimal()
+
+fs_tidy <- get_tidy_audio_analysis('7dOk9Bck00Zv0eeq5m6GoN')
+fs_tempogram <- fs_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Fallen Souls') +
+  theme_minimal()
+
+ko_tidy <- get_tidy_audio_analysis('5LSCfqeq1u1GxKogSQFEZn')
+ko_tempogram <- ko_tidy %>% 
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) %>% 
+  ggplot(aes(x = time, y = bpm, fill = power)) + 
+  geom_raster() + 
+  scale_fill_viridis_c(guide = 'none') +
+  labs(x = 'Time (s)', y = 'Tempo (BPM)', title='Tempogram of Knockout') +
+  theme_minimal()
+```
+
+```{r Principal Component 2 Analysis}
+low_pc2_track_names <- c('The Source', 'Hardstyle Pirates', 'Forever', 'The F-Track')
+high_pc2_track_names <- c('Empire Of The Sun', 'Delay Distortion', 'Face The Enemy - Album Edit', 'Teqnology')
+
+all_low_pc2_songs <- all_songs[all_songs$track_name %in% low_pc2_track_names,]
+low_pc2_songs <- data.frame(all_low_pc2_songs$artist_name, all_low_pc2_songs$track_name, all_low_pc2_songs$speechiness, all_low_pc2_songs$instrumentalness)
+colnames(low_pc2_songs) <- c('Artist', 'Track', 'Speechiness', 'Instrumentalness')
+
+
+all_high_pc2_songs <- all_songs[all_songs$track_name %in% high_pc2_track_names,]
+high_pc2_songs <- data.frame(all_high_pc2_songs$artist_name, all_high_pc2_songs$track_name, all_high_pc2_songs$speechiness, all_high_pc2_songs$instrumentalness)
+colnames(high_pc2_songs) <- c('Artist', 'Track', 'Speechiness', 'Instrumentalness')
+
+save(low_pc2_songs, file='data/low_pc2_songs.RData')
+save(high_pc2_songs, file='data/high_pc2_songs.RData')
+```
+
+```{r Get Track URI}
+load('data/brennan_heart.RData')
+load('data/da_tweekaz.RData')
+load('data/dblock_stefan.RData')
+load('data/headhunterz.RData')
+load('data/noisecontrollers.RData')
+load('data/showtek.RData')
+load('data/sub_zero_project.RData')
+all_uris <- c(noisecontrollers$track_uri, 
+              headhunterz$track_uri, 
+              brennan_heart$track_uri, 
+              showtek$track_uri, 
+              da_tweekaz$track_uri,
+              sub_zero_project$track_uri,
+              dblock_stefan$track_uri)
+all_songs$track.uri <- all_uris
+```
+
+```{r Add Audio Analysis}
+#all_songs_working <- subset(all_songs, num!=178 & num!=445 & num!=595 & num!=630 & num!=651 & num!=683)
+all_songs_audio <- all_songs_working[all_songs_working$num == 1,] %>% add_audio_analysis
+for (i in 2:698){
+  print(i)
+  all_songs_audio <- all_songs_audio %>% 
+    bind_rows(add_audio_analysis(all_songs[all_songs$num == i,]))
+}
+```
+
+```{r Get Delta Timbre}
+all_songs_delta_timbre <- all_songs_audio %>% 
+    mutate(artist_name = factor(artist_name)) %>% 
+    mutate(
+        segments = 
+            map2(segments, key, compmus_c_transpose)) %>% 
+    mutate(
+        segments = 
+            map(
+                segments, 
+                mutate, 
+                pitches = map(pitches, compmus_normalise, 'manhattan'))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                pitches = map2(pitches, lag(pitches), `-`))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>% 
+    mutate(
+        pitches =
+            map(segments,
+                compmus_summarise, pitches,
+                method = 'mean', na.rm = TRUE),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean', na.rm = TRUE)) %>%
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>% 
+    unnest(cols = c(pitches, timbre))
+```
+
+```{r Combine all Features into one dataframe}
+all_songs_all_data <- all_songs[,12:15] %>% 
+  cbind(all_songs[,1:11]) %>% 
+  cbind(all_songs_delta_timbre[,30:53]) %>% 
+  cbind(all_songs_delta_delta_timbre[,5:16])
+```
+
+```{r Get Delta Delta Timbre}
+all_songs_delta_delta_timbre <- all_songs_audio[,-c(1:11, 16:23)] %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>%
+    mutate(
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean', na.rm = TRUE)) %>%
+    mutate_at(vars(timbre), map, bind_rows) %>% 
+    unnest(cols = timbre)
+```
+
+```{r Create and Save Oversampled Data}
+load('data/all_songs_all_data.RData')
+
+oversampled_all_songs <- all_songs_all_data %>% 
+  group_by(artist_name) %>% 
+  sample_n(100, replace=TRUE)
+
+oversampled_factors <- as.factor(oversampled_all_songs$artist_name)
+oversampled_targets <- to_categorical(as.integer(as.factor(oversampled_all_songs$artist_name)))
+oversampled_targets <- oversampled_targets[,2:8]
+
+colnames(oversampled_all_songs)[40:51]
+
+oversampled_features <- apply(oversampled_all_songs[,5:15], 2, scale_01)
+oversampled_delta_timbre <- apply(oversampled_all_songs[,16:39], 2, scale_01)
+oversampled_delta_delta_timbre <- apply(oversampled_all_songs[,40:51], 2, scale_01)
+
+oversampled_full_data <- cbind(oversampled_features, oversampled_delta_timbre, oversampled_delta_delta_timbre)
+
+save(oversampled_all_songs, file='data/oversampled/oversampled_all_songs.RData')
+
+save(oversampled_factors, file='data/oversampled/oversampled_factors.RData')
+save(oversampled_targets, file='data/oversampled/oversampled_targets.RData')
+
+save(oversampled_features, file='data/oversampled/oversampled_features.RData')
+save(oversampled_delta_timbre, file='data/oversampled/oversampled_delta_timbre.RData')
+save(oversampled_delta_delta_timbre, file='data/oversampled/oversampled_delta_delta_timbre.RData')
+
+save(oversampled_full_data, file='data/oversampled/oversampled_full_data.RData')
+```
+
+```{r SVM Classifier (K-Fold CV) on Track Features, results='asis'}
+svm_accuracies_features <- c()
+for (i in 1:k){
+  cat("__Fold #", i, ":__  ")
+  # Get all data rows of this fold
+  inds <- which(fold_indices == i, arr.ind=TRUE)
+  
+  # Take these data rows as validation data
+  val_x <- train_features[inds,]
+  val_y <- train_factors[inds]
+  
+  # Take the other data rows as training data
+  train_x <- train_features[-inds,]
+  train_y <- train_factors[-inds]
+  
+  # Create a support vector machine model and assess its performance
+  svm_model <- svm(x=train_x, y=train_y)
+  predicted <- predict(svm_model, val_x)
+  confusion <- confusionMatrix(predicted, val_y)
+  acc <- confusion$overall["Accuracy"]
+  svm_accuracies_features <- c(svm_accuracies_features, acc)
+  print(acc)
+  
+  cf <- knitr::kable(table(predicted, val_y)) %>% 
+    kable_styling("striped", full_width = T)
+  print(add_header_above(cf, c("Predicted", "Actual"=7)))
+  #print(knitr::kable(table(predicted, val_y)))
+  cat("\n  ...  \n")
+  cat("\n  ")
+  #print(formattable(confusion$table))
+}
+cat("__Mean accuracy:__ ", mean(svm_accuracies_features))
+```
+
+```{r Keras Accuracy Plotting Non Tensorboard (not used), eval=FALSE}
+all_accuracies <- data.frame(accuracy_histories)
+all_accuracies <- data.frame(t(all_accuracies))
+colnames(all_accuracies) <- c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5")
+all_accuracies$x <- seq(1:nrow(all_accuracies))
+all_accuracies_melted <- melt(all_accuracies, measure.vars=c("Fold_1", "Fold_2", "Fold_3", "Fold_4", "Fold_5"), id="x")
+ggplot(all_accuracies_melted, aes(x=x, y=value, col=variable)) +
+  geom_line()
+```
+
+```{r Keras Model (K-Fold CV) with Tensorboard on Track Features, eval=FALSE}
+num_epochs <- 500
+accuracy_histories <- c()
+all_scores <- c()
+for (i in 1:k) {
+  cat("Processing fold #", i, "\n")
+  # Prepare the validation data: data from partition # k
+  val_indices <- which(fold_indices == i, arr.ind = TRUE) 
+  
+  # Get the training and validation data
+  val_data <- train_features[val_indices,]
+  val_targets <- train_targets[val_indices,]
+  partial_train_data <- train_features[-val_indices,]
+  partial_train_targets <- train_targets[-val_indices,]
+  
+  # Build the Keras model
+  model <- build_model(11)
+  
+  # Train the model (in silent mode, verbose=0)
+  history <- model %>% fit(partial_train_data, partial_train_targets,
+                epochs = num_epochs, batch_size = 1, verbose = 0,
+                callbacks = callback_tensorboard(paste("logs_features/run_", i, sep="")),
+                validation_data = list(val_data, val_targets))
+  accuracy_histories <- rbind(accuracy_histories, history$metrics$val_accuracy)
+} 
+#tensorboard("logs_features")
+#all_scores
+average_accuracy_history <- data.frame(
+  epoch=seq(1:ncol(accuracy_histories)),
+  validation_accuracy=apply(accuracy_histories, 2, mean)
+)
+```
+
+```{r Prepare Novel Data}
+final_lake_of_fire <- get_track_audio_features('0ri3xd7X6jvJQTz9T6IE7l')
+final_fallen_souls <- get_track_audio_features('7dOk9Bck00Zv0eeq5m6GoN')
+final_knockout <- get_track_audio_features('5LSCfqeq1u1GxKogSQFEZn')
+
+final_novel_songs <- final_lake_of_fire %>% bind_rows(final_fallen_souls, final_knockout)
+colnames(final_novel_songs)[14] <- 'track.uri'
+final_novel_songs <- final_novel_songs %>% add_audio_analysis
+
+final_novel_songs <- final_novel_songs %>% 
+    mutate(
+        segments = 
+            map2(segments, key, compmus_c_transpose)) %>% 
+    mutate(
+        segments = 
+            map(
+                segments, 
+                mutate, 
+                pitches = map(pitches, compmus_normalise, 'manhattan'))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                pitches = map2(pitches, lag(pitches), `-`))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>% 
+    mutate(
+        pitches =
+            map(segments,
+                compmus_summarise, pitches,
+                method = 'mean', na.rm = TRUE),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean', na.rm = TRUE)) %>%
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>% 
+    unnest(cols = c(pitches, timbre))
+
+
+delta_delta <- final_novel_songs[,c(3, 27:31)] %>% 
+    mutate(
+        segments = 
+            map2(segments, key, compmus_c_transpose)) %>% 
+    mutate(
+        segments = 
+            map(
+                segments, 
+                mutate, 
+                pitches = map(pitches, compmus_normalise, 'manhattan'))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                pitches = map2(pitches, lag(pitches), `-`))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>% 
+    mutate(
+        segments =
+            map(
+                segments,
+                mutate,
+                timbre = map2(timbre, lag(timbre), `-`))) %>%  
+    mutate(
+        pitches =
+            map(segments,
+                compmus_summarise, pitches,
+                method = 'mean', na.rm = TRUE),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean', na.rm = TRUE)) %>%
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>% 
+    unnest(cols = c(pitches, timbre))  
+
+delta_delta <- delta_delta[,19:30]
+colnames(delta_delta) <- c("d01", "d02", "d03", "d04", "d05", "d06", "d07", "d08", "d09", "d10", "d11", "d12")
+
+#colnames(final_novel_songs)[c(1:11, 32:55)]
+
+final_novel_songs <- final_novel_songs[,c(1:11, 32:55)] %>% 
+  cbind(delta_delta)
+
+save(final_novel_songs, file='data/final_novel_songs.RData')
+```
